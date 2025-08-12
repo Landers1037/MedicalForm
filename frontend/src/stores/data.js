@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { 
   GetAllPatients, 
   GetPatientByID, 
@@ -157,11 +157,17 @@ export const useDataStore = defineStore('data', () => {
     }
   }
   
+  // 计算总患者数量
+  const totalCount = computed(() => {
+    return patientItems.value ? patientItems.value.length : 0
+  })
+
   return {
     patientItems,
     currentPatient,
     loading,
     dbInfo,
+    totalCount,
     fetchAllPatients,
     fetchPatientById,
     addPatient,

@@ -469,11 +469,25 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
 
+    // 确保字段类型正确，防止前端数据类型转换导致后端反序列化失败
+    const submitData = {
+      ...patientForm.value,
+      name: String(patientForm.value.name || ''),
+      phone: String(patientForm.value.phone || ''),
+      age: String(patientForm.value.age || ''),
+      contact: String(patientForm.value.contact || ''),
+      doc: String(patientForm.value.doc || ''),
+      detail: String(patientForm.value.detail || ''),
+      solution: String(patientForm.value.solution || ''),
+      medical_advice: String(patientForm.value.medical_advice || ''),
+      AllergyHistory: String(patientForm.value.AllergyHistory || '')
+    }
+
     if (editingPatient.value) {
-      await dataStore.updatePatient(editingPatient.value.id, patientForm.value)
+      await dataStore.updatePatient(editingPatient.value.id, submitData)
       ElMessage.success('更新成功')
     } else {
-      await dataStore.addPatient(patientForm.value)
+      await dataStore.addPatient(submitData)
       ElMessage.success('添加成功')
     }
 

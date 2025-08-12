@@ -15,5 +15,12 @@
     "productName": "医疗管理表单系统",
     "productVersion": "1.0.0",
     "copyright": "Copyright 2025 医疗管理表单系统 @Landers版权所有"
+  },
+  "windows": {
+    "hideTitleBar": true,
+    "disableResize": false,
+    "fullscreenButtonEnabled": false,
+    "theme": "system",
+    "hideOnClose": true
   }
 }

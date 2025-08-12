@@ -37,6 +37,15 @@ export const useThemeStore = defineStore('theme', () => {
     applyTheme()
   }
   
+  // 通过颜色值设置主题颜色
+  const setPrimaryColorByValue = async (colorValue) => {
+    // 根据颜色值找到对应的颜色名称
+    const colorName = Object.keys(themeColors).find(key => themeColors[key] === colorValue)
+    if (colorName) {
+      await setColor(colorName)
+    }
+  }
+  
   // 切换主题模式
   const toggleMode = async () => {
     const newMode = mode.value === 'light' ? 'dark' : 'light'
@@ -107,9 +116,12 @@ export const useThemeStore = defineStore('theme', () => {
     color,
     themeColors,
     currentColor,
+    primaryColor: currentColor, // 添加primaryColor别名
     isDark,
     setMode,
     setColor,
+    setPrimaryColor: setPrimaryColorByValue, // 添加setPrimaryColor方法
+    saveTheme: saveThemeConfig, // 添加saveTheme别名
     toggleMode,
     applyTheme,
     loadThemeConfig,

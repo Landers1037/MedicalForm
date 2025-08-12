@@ -35,7 +35,7 @@ func (ds *DatabaseService) InitDB() error {
 	}
 
 	// 数据库文件路径
-	dbPath := filepath.Join(appDir, "pig.db")
+	dbPath := filepath.Join(appDir, DBName)
 
 	// 配置GORM日志
 	newLogger := logger.New(
@@ -68,7 +68,7 @@ func (ds *DatabaseService) InitDB() error {
 
 // AutoMigrate 自动迁移所有表
 func (ds *DatabaseService) AutoMigrate() error {
-	return ds.db.AutoMigrate(&Pig{}, &Config{}, &Doctor{})
+	return ds.db.AutoMigrate(&Patient{}, &Config{}, &Doctor{})
 }
 
 // GetDB 获取数据库实例

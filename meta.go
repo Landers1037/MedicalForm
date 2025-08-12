@@ -10,12 +10,15 @@ import (
 type MetaConfig struct {
 	Title   string `json:"title"`   // 程序标题
 	Version string `json:"version"` // 程序版本
+	DBName  string `json:"dbName"`  // 数据库文件名
+
 }
 
 // 全局变量
 var (
 	Title   string = "医疗管理表单系统" // 程序标题
 	Version string = "1.0.0"    // 程序版本
+	DBName  string = "patient.db"   // 数据库文件名
 )
 
 // LoadMetaConfig 从meta.json文件中加载软件配置
@@ -49,6 +52,9 @@ func LoadMetaConfig() error {
 	if config.Version != "" {
 		Version = config.Version
 	}
+	if config.DBName != "" {
+		DBName = config.DBName
+	}
 
 	return nil
 }
@@ -59,6 +65,7 @@ func createDefaultMetaConfig(metaPath string) error {
 	defaultConfig := MetaConfig{
 		Title:   Title,
 		Version: Version,
+		DBName:  DBName,
 	}
 
 	// 转换为JSON

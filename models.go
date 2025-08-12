@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// Pig 患者信息模型
-type Pig struct {
+// Patient 患者信息模型
+type Patient struct {
 	ID uint `gorm:"primaryKey;autoIncrement" json:"id"` // 主键ID
 	// 兼容性字段
 	Date string `gorm:"size:50" json:"date"` // 日期
@@ -33,8 +33,8 @@ type Pig struct {
 }
 
 // TableName 指定表名为小写下划线格式
-func (Pig) TableName() string {
-	return "pig"
+func (Patient) TableName() string {
+	return "patient"
 }
 
 // Config 全局配置模型

@@ -4,7 +4,7 @@ import {main} from '../models';
 
 export function AddDoctor(arg1:main.Doctor):Promise<void>;
 
-export function AddPatient(arg1:main.Pig):Promise<void>;
+export function AddPatient(arg1:main.Patient):Promise<void>;
 
 export function BackupDatabase(arg1:boolean):Promise<void>;
 
@@ -20,7 +20,7 @@ export function GetAllConfigs():Promise<Record<string, string>>;
 
 export function GetAllDoctors():Promise<Array<main.Doctor>>;
 
-export function GetAllPatients():Promise<Array<main.Pig>>;
+export function GetAllPatients():Promise<Array<main.Patient>>;
 
 export function GetAppInfo():Promise<Record<string, any>>;
 
@@ -34,13 +34,13 @@ export function GetDoctorByID(arg1:number):Promise<main.Doctor>;
 
 export function GetMetaInfo():Promise<Record<string, string>>;
 
-export function GetPatientByID(arg1:number):Promise<main.Pig>;
+export function GetPatientByID(arg1:number):Promise<main.Patient>;
 
 export function MigrateOldDatabase(arg1:string):Promise<void>;
 
 export function SearchDoctors(arg1:string,arg2:string):Promise<Array<main.Doctor>>;
 
-export function SearchPatients(arg1:string,arg2:string):Promise<Array<main.Pig>>;
+export function SearchPatients(arg1:string,arg2:string):Promise<Array<main.Patient>>;
 
 export function SelectDatabaseFile():Promise<string>;
 
@@ -48,4 +48,4 @@ export function SetConfig(arg1:string,arg2:string):Promise<void>;
 
 export function UpdateDoctor(arg1:main.Doctor):Promise<void>;
 
-export function UpdatePatient(arg1:main.Pig):Promise<void>;
+export function UpdatePatient(arg1:main.Patient):Promise<void>;

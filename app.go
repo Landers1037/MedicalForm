@@ -37,89 +37,89 @@ func (a *App) startup(ctx context.Context) {
 }
 
 // GetAllPatients 获取所有患者数据
-func (a *App) GetAllPatients() ([]Pig, error) {
-	var pigs []Pig
-	result := a.db.GetDB().Order("id desc").Find(&pigs)
-	return pigs, result.Error
+func (a *App) GetAllPatients() ([]Patient, error) {
+	var patients []Patient
+	result := a.db.GetDB().Order("id desc").Find(&patients)
+	return patients, result.Error
 }
 
 // GetPatientByID 根据ID获取患者数据
-func (a *App) GetPatientByID(id uint) (*Pig, error) {
-	var pig Pig
-	result := a.db.GetDB().First(&pig, id)
+func (a *App) GetPatientByID(id uint) (*Patient, error) {
+	var patient Patient
+	result := a.db.GetDB().First(&patient, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &pig, nil
+	return &patient, nil
 }
 
 // AddPatient 添加新患者数据
-func (a *App) AddPatient(pig Pig) error {
+func (a *App) AddPatient(patient Patient) error {
 	// 设置当前时间
 	now := time.Now()
-	pig.Time = now.Format("15:04:05")
-	pig.Date = now.Format("2006-01-02")
-	pig.CreatedAt = now
-	pig.UpdatedAt = now
+	patient.Time = now.Format("15:04:05")
+	patient.Date = now.Format("2006-01-02")
+	patient.CreatedAt = now
+	patient.UpdatedAt = now
 
-	result := a.db.GetDB().Create(&pig)
+	result := a.db.GetDB().Create(&patient)
 	return result.Error
 }
 
 // UpdatePatient 更新患者数据
-func (a *App) UpdatePatient(pig Pig) error {
-	pig.UpdatedAt = time.Now()
-	result := a.db.GetDB().Save(&pig)
+func (a *App) UpdatePatient(patient Patient) error {
+	patient.UpdatedAt = time.Now()
+	result := a.db.GetDB().Save(&patient)
 	return result.Error
 }
 
 // DeletePatient 删除患者数据
 func (a *App) DeletePatient(id uint) error {
-	result := a.db.GetDB().Delete(&Pig{}, id)
+	result := a.db.GetDB().Delete(&Patient{}, id)
 	return result.Error
 }
 
 // SearchPatients 搜索患者数据
-func (a *App) SearchPatients(searchType, keyword string) ([]Pig, error) {
-	var pigs []Pig
+func (a *App) SearchPatients(searchType, keyword string) ([]Patient, error) {
+	var patients []Patient
 	var result *gorm.DB
 
 	switch searchType {
 	case "name":
-		result = a.db.GetDB().Where("name LIKE ?", "%"+keyword+"%").Find(&pigs)
+		result = a.db.GetDB().Where("name LIKE ?", "%"+keyword+"%").Find(&patients)
 	case "date":
-		result = a.db.GetDB().Where("date LIKE ?", "%"+keyword+"%").Find(&pigs)
+		result = a.db.GetDB().Where("date LIKE ?", "%"+keyword+"%").Find(&patients)
 	case "sex":
-		result = a.db.GetDB().Where("sex = ?", keyword).Find(&pigs)
+		result = a.db.GetDB().Where("sex = ?", keyword).Find(&patients)
 	case "phone":
-		result = a.db.GetDB().Where("phone LIKE ?", "%"+keyword+"%").Find(&pigs)
+		result = a.db.GetDB().Where("phone LIKE ?", "%"+keyword+"%").Find(&patients)
 	default:
 		return nil, fmt.Errorf("invalid search type")
 	}
 
-	return pigs, result.Error
+	return patients, result.Error
 }
 
 // GetDatabaseInfo 获取数据库信息
 func (a *App) GetDatabaseInfo() (map[string]interface{}, error) {
 	// 获取数据库文件大小
-	fileInfo, err := os.Stat("pig.db")
+	fileInfo, err := os.Stat(filepath.Join(GetAppRuntimePath(), DBName))
 	if err != nil {
 		return nil, err
 	}
-	size := fileInfo.Size() / 1000 // 转换为KB
+	size := fileInfo.Size()
 
 	// 获取记录数量
 	var count int64
-	a.db.GetDB().Model(&Pig{}).Count(&count)
+	a.db.GetDB().Model(&Patient{}).Count(&count)
 
 	// 获取备份信息
 	backupDir := "backup"
 	var latestBackup string
-	if _, err := os.Stat(backupDir); err == nil {
-		files, _ := os.ReadDir(backupDir)
+	if _, err := os.Stat(filepath.Join(GetAppRuntimePath(), backupDir)); err == nil {
+		files, _ := os.ReadDir(filepath.Join(GetAppRuntimePath(), backupDir))
 		if len(files) > 0 {
-			latestBackup = strings.Replace(files[len(files)-1].Name(), "pig-", "", 1)
+			latestBackup = strings.Replace(files[len(files)-1].Name(), "patient-", "", 1)
 			latestBackup = strings.Replace(latestBackup, ".db", "", 1)
 		}
 	}
@@ -138,23 +138,25 @@ func (a *App) CreateDatabase() error {
 
 // DropDatabase 删除所有数据
 func (a *App) DropDatabase() error {
-	return a.db.GetDB().Exec("DELETE FROM pig").Error
+	return a.db.GetDB().Exec("DELETE FROM patient").Error
 }
 
 // BackupDatabase 备份数据库
 func (a *App) BackupDatabase(clearAfterBackup bool) error {
 	// 创建备份目录
 	backupDir := "backup"
+	backupDir = filepath.Join(GetAppRuntimePath(), backupDir)
 	if _, err := os.Stat(backupDir); os.IsNotExist(err) {
 		os.Mkdir(backupDir, 0755)
 	}
 
 	// 生成备份文件名
-	backupName := fmt.Sprintf("pig-%s.db", time.Now().Format("2006-01-02_15-04-05"))
-	backupPath := fmt.Sprintf("%s/%s", backupDir, backupName)
+	backupName := fmt.Sprintf("patient-%s.db", time.Now().Format("2006-01-02_15-04-05"))
+	backupPath := filepath.Join(backupDir, backupName)
 
 	// 复制数据库文件
-	sourceFile, err := os.Open("pig.db")
+	dbPath := filepath.Join(GetAppRuntimePath(), DBName)
+	sourceFile, err := os.Open(dbPath)
 	if err != nil {
 		return err
 	}
@@ -207,7 +209,10 @@ func (a *App) SetConfig(key, value string) error {
 		// 配置存在，更新配置
 		config.Value = value
 		config.UpdatedAt = time.Now()
-		return a.db.GetDB().Save(&config).Error
+		return a.db.GetDB().Model(&config).Where("key = ?", key).Updates(map[string]interface{}{
+			"value":      value,
+			"updated_at": time.Now(),
+		}).Error
 	}
 }
 
@@ -277,7 +282,7 @@ func (a *App) GetDatabasePath() (string, error) {
 	}
 
 	// 构建数据库文件路径
-	dbPath := filepath.Join(appDataDir, appName, "pig.db")
+	dbPath := filepath.Join(appDataDir, appName, DBName)
 
 	// 检查文件是否存在并获取大小
 	fileInfo, err := os.Stat(dbPath)
@@ -434,10 +439,10 @@ func (a *App) MigrateOldDatabase(oldDbPath string) error {
 	}
 
 	// 如果没有旧表结构，尝试直接从pig表读取
-	var oldPigs []OldPigTable
+	var oldPatients []OldPigTable
 	if tableExists != "" {
 		// 从旧表结构读取数据
-		result := oldDbService.db.Table("pig").Find(&oldPigs)
+		result := oldDbService.db.Table("pig").Find(&oldPatients)
 		if result.Error != nil {
 			return fmt.Errorf("读取旧数据失败: %v", result.Error)
 		}
@@ -446,30 +451,30 @@ func (a *App) MigrateOldDatabase(oldDbPath string) error {
 	}
 
 	// 转换并插入新数据库
-	for _, oldPig := range oldPigs {
+	for _, oldPatient := range oldPatients {
 		// 转换旧数据结构到新数据结构
-		newPig := Pig{
-			Date:           oldPig.Date,
-			Time:           oldPig.Time,
-			Name:           oldPig.Name,
-			Sex:            oldPig.Sex,
-			Age:            oldPig.Age,
-			IllTime:        oldPig.IllTime,
+		newPatient := Patient{
+			Date:           oldPatient.Date,
+			Time:           oldPatient.Time,
+			Name:           oldPatient.Name,
+			Sex:            oldPatient.Sex,
+			Age:            oldPatient.Age,
+			IllTime:        oldPatient.IllTime,
 			Phone:          "",
-			Contact:        oldPig.Phone, // 旧版本没有联系方式字段
-			AllergyHistory: "",           // 旧版本没有过敏史字段
-			Detail:         oldPig.Detail,
-			Solution:       oldPig.Solution,
-			MedicalAdvice:  oldPig.MedicalAdvice,
-			Addon:          oldPig.Addon,
-			Money:          oldPig.Money,
-			Doc:            oldPig.Doc,
+			Contact:        oldPatient.Phone, // 旧版本没有联系方式字段
+			AllergyHistory: "",               // 旧版本没有过敏史字段
+			Detail:         oldPatient.Detail,
+			Solution:       oldPatient.Solution,
+			MedicalAdvice:  oldPatient.MedicalAdvice,
+			Addon:          oldPatient.Addon,
+			Money:          oldPatient.Money,
+			Doc:            oldPatient.Doc,
 			CreatedAt:      time.Now(),
 			UpdatedAt:      time.Now(),
 		}
 
 		// 插入到新数据库
-		result := a.db.GetDB().Create(&newPig)
+		result := a.db.GetDB().Create(&newPatient)
 		if result.Error != nil {
 			return fmt.Errorf("插入迁移数据失败: %v", result.Error)
 		}

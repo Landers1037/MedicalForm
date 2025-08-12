@@ -1,7 +1,7 @@
 <template>
   <el-container class="app-container">
-    <!-- 顶部导航栏 -->
-    <el-header class="app-header">
+    <!-- 顶部标题栏 -->
+    <el-header class="app-header" style="--wails-draggable: drag">
       <div class="header-content">
         <div class="logo-section">
           <el-icon class="logo-icon" :size="24">
@@ -9,34 +9,6 @@
           </el-icon>
           <span class="app-title">{{ appTitle }}</span>
         </div>
-        
-        <el-menu
-          :default-active="$route.path"
-          mode="horizontal"
-          class="nav-menu"
-          @select="handleMenuSelect"
-        >
-          <el-menu-item index="/">
-            <el-icon><House /></el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-menu-item index="/panel">
-            <el-icon><Grid /></el-icon>
-            <span>数据管理</span>
-          </el-menu-item>
-          <el-menu-item index="/doctor">
-            <el-icon><User /></el-icon>
-            <span>医师管理</span>
-          </el-menu-item>
-          <el-menu-item index="/setting">
-            <el-icon><Setting /></el-icon>
-            <span>设置</span>
-          </el-menu-item>
-          <el-menu-item index="/about">
-            <el-icon><InfoFilled /></el-icon>
-            <span>关于</span>
-          </el-menu-item>
-        </el-menu>
         
         <div class="header-actions">
           <!-- 主题切换按钮 -->
@@ -47,9 +19,71 @@
               :icon="themeStore.isDark ? Sunny : Moon"
             />
           </el-tooltip>
+          
+          <!-- 自定义窗口控制按钮 -->
+          <div class="window-controls">
+            <el-tooltip content="最小化">
+              <el-button
+                class="window-control-btn minimize-btn"
+                @click="minimizeWindow"
+                :icon="Minus"
+                size="small"
+                text
+              />
+            </el-tooltip>
+            <el-tooltip content="最大化/还原">
+              <el-button
+                class="window-control-btn maximize-btn"
+                @click="toggleMaximize"
+                :icon="isMaximized ? CopyDocument : FullScreen"
+                size="small"
+                text
+              />
+            </el-tooltip>
+            <el-tooltip content="关闭">
+              <el-button
+                class="window-control-btn close-btn"
+                @click="closeWindow"
+                :icon="Close"
+                size="small"
+                text
+              />
+            </el-tooltip>
+          </div>
         </div>
       </div>
     </el-header>
+    
+    <!-- 导航菜单栏 -->
+    <div class="nav-bar">
+      <el-menu
+        :default-active="$route.path"
+        mode="horizontal"
+        class="nav-menu"
+        @select="handleMenuSelect"
+      >
+        <el-menu-item index="/">
+          <el-icon><House /></el-icon>
+          <span>首页</span>
+        </el-menu-item>
+        <el-menu-item index="/panel">
+          <el-icon><Grid /></el-icon>
+          <span>数据管理</span>
+        </el-menu-item>
+        <el-menu-item index="/doctor">
+          <el-icon><User /></el-icon>
+          <span>医师管理</span>
+        </el-menu-item>
+        <el-menu-item index="/setting">
+          <el-icon><Setting /></el-icon>
+          <span>设置</span>
+        </el-menu-item>
+        <el-menu-item index="/about">
+          <el-icon><InfoFilled /></el-icon>
+          <span>关于</span>
+        </el-menu-item>
+      </el-menu>
+    </div>
     
     <!-- 主内容区域 -->
     <el-main class="app-main">
@@ -74,12 +108,21 @@ import {
   Setting,
   InfoFilled,
   Sunny,
-  Moon
+  Moon,
+  Minus,
+  FullScreen,
+  CopyDocument,
+  Close,
+  ArrowDown
 } from '@element-plus/icons-vue'
 import { GetMetaInfo } from '../wailsjs/go/main/App'
+import { WindowMinimise, WindowToggleMaximise, Quit, WindowIsMaximised, WindowHide, WindowShow } from '../wailsjs/runtime/runtime'
 
 // 程序标题
 const appTitle = ref('医疗表单管理系统')
+
+// 窗口状态
+const isMaximized = ref(false)
 
 // 加载程序信息
 const loadAppInfo = async () => {
@@ -115,9 +158,45 @@ const handleMenuSelect = async (index) => {
   }
 }
 
+// 窗口控制函数
+const minimizeWindow = () => {
+  WindowMinimise()
+}
+
+const toggleMaximize = async () => {
+  WindowToggleMaximise()
+  // 更新最大化状态
+  setTimeout(async () => {
+    try {
+      isMaximized.value = await WindowIsMaximised()
+    } catch (error) {
+      console.error('获取窗口状态失败:', error)
+    }
+  }, 100)
+}
+
+const closeWindow = () => {
+  Quit()
+}
+
+// 最小化到托盘
+const minimizeToTray = () => {
+  WindowHide()
+}
+
+// 检查窗口最大化状态
+const checkWindowState = async () => {
+  try {
+    isMaximized.value = await WindowIsMaximised()
+  } catch (error) {
+    console.error('检查窗口状态失败:', error)
+  }
+}
+
 // 初始化主题和程序信息
 onMounted(async () => {
   await themeStore.initTheme()
+  await checkWindowState()
   await loadAppInfo()
 })
 </script>
@@ -134,6 +213,8 @@ onMounted(async () => {
   padding: 0;
   height: 60px;
   box-shadow: var(--el-box-shadow-light);
+  user-select: none;
+  cursor: pointer;
 }
 
 .header-content {
@@ -142,6 +223,14 @@ onMounted(async () => {
   justify-content: space-between;
   height: 100%;
   padding: 0 20px;
+  /* 使header可拖拽移动窗口 */
+  -webkit-app-region: drag;
+}
+
+/* 防止按钮被拖拽影响 */
+.header-actions,
+.window-controls {
+  -webkit-app-region: no-drag;
 }
 
 .logo-section {
@@ -160,17 +249,26 @@ onMounted(async () => {
   color: var(--el-text-color-primary);
 }
 
+/* 导航菜单栏样式 */
+.nav-bar {
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 0 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
 .nav-menu {
-  flex: 1;
-  margin: 0 40px;
   border-bottom: none;
   background-color: transparent;
+  height: 50px;
 }
 
 .nav-menu .el-menu-item {
   border-radius: var(--el-border-radius-small);
   margin: 0 4px;
   transition: all 0.3s;
+  height: 50px;
+  line-height: 50px;
 }
 
 .nav-menu .el-menu-item:hover {
@@ -186,6 +284,54 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 窗口控制按钮样式 */
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.window-control-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  color: var(--el-text-color-regular);
+}
+
+.window-control-btn:hover {
+  background-color: var(--el-fill-color-light);
+}
+
+.minimize-btn:hover {
+  background-color: #e1e1e1;
+}
+
+.maximize-btn:hover {
+  background-color: #e1e1e1;
+}
+
+.tray-btn:hover {
+  background-color: #e1e1e1;
+}
+
+.close-btn:hover {
+  background-color: #e81123;
+}
+
+/* 暗黑模式下的窗口控制按钮 */
+.dark .minimize-btn:hover,
+.dark .maximize-btn:hover,
+.dark .tray-btn:hover {
+  background-color: #404040;
+}
+
+.dark .close-btn:hover {
+  background-color: #e81123;
+  color: white;
 }
 
 .app-main {

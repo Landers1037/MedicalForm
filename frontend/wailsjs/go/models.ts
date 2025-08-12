@@ -48,7 +48,7 @@ export namespace main {
 		    return a;
 		}
 	}
-	export class Pig {
+	export class Patient {
 	    id: number;
 	    date: string;
 	    time: string;
@@ -74,7 +74,7 @@ export namespace main {
 	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
-	        return new Pig(source);
+	        return new Patient(source);
 	    }
 	
 	    constructor(source: any = {}) {
