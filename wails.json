@@ -1,0 +1,19 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "医疗管理表单系统",
+  "outputfilename": "medical-form",
+  "frontend:install": "pnpm install",
+  "frontend:build": "pnpm run build",
+  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "landers",
+    "email": "liaorenj@gmail.com"
+  },
+   "info": {
+    "companyName": "Landers App",
+    "productName": "医疗管理表单系统",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright 2025 医疗管理表单系统 @Landers版权所有"
+  }
+}

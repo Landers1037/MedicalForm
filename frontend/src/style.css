@@ -1,0 +1,221 @@
+/* 全局字体设置 */
+:root {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  /* 默认主题颜色 */
+  --el-color-primary: #409EFF;
+  
+  /* 圆角设计 */
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 20px;
+  
+  /* 阴影效果 */
+  --el-box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --el-box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+  --el-box-shadow-dark: 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* 重置样式 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 400;
+    src: local(""),
+    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--el-fill-color-lighter);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--el-fill-color-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--el-fill-color-darker);
+}
+
+/* 卡片样式增强 */
+.el-card {
+  border-radius: var(--el-border-radius-base);
+  box-shadow: var(--el-box-shadow-light);
+  transition: box-shadow 0.3s;
+}
+
+.el-card:hover {
+  box-shadow: var(--el-box-shadow);
+}
+
+/* 按钮样式增强 */
+.el-button {
+  border-radius: var(--el-border-radius-base);
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.el-button--round {
+  border-radius: var(--el-border-radius-round);
+}
+
+/* 输入框样式增强 */
+.el-input__wrapper {
+  border-radius: var(--el-border-radius-base);
+}
+
+.el-input__wrapper:hover,
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* 表格样式增强 */
+.el-table {
+  border-radius: var(--el-border-radius-base);
+  overflow: hidden;
+}
+
+.el-table th {
+  background-color: var(--el-fill-color-light);
+  font-weight: 600;
+}
+
+/* 对话框样式增强 */
+.el-dialog {
+  border-radius: var(--el-border-radius-base);
+}
+
+/* 抽屉样式增强 */
+.el-drawer {
+  border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
+}
+
+/* 菜单样式增强 */
+.el-menu-item,
+.el-sub-menu__title {
+  border-radius: var(--el-border-radius-small);
+  margin: 2px 8px;
+}
+
+/* 暗黑模式适配 */
+html.dark {
+  color-scheme: dark;
+}
+
+/* 动画效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* 工具类 */
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.rounded {
+  border-radius: var(--el-border-radius-base);
+}
+
+.shadow {
+  box-shadow: var(--el-box-shadow-light);
+}
+
+.shadow-lg {
+  box-shadow: var(--el-box-shadow);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .el-card {
+    margin: 8px;
+  }
+  
+  .el-dialog {
+    width: 95% !important;
+    margin: 0 auto;
+  }
+}
