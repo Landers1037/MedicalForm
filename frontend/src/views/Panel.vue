@@ -101,10 +101,13 @@
           <el-table-column prop="doc" label="诊断医师" width="120" show-overflow-tooltip />
           <el-table-column prop="detail" label="诊断" show-overflow-tooltip />
           <el-table-column prop="solution" label="治疗方案" show-overflow-tooltip />
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link @click="handleEdit(row)" :icon="Edit">
                 编辑
+              </el-button>
+              <el-button type="success" link @click="handleCopy(row)" :icon="CopyDocument">
+                复制
               </el-button>
               <el-button type="danger" link @click="handleDelete(row)" :icon="Delete">
                 删除
@@ -156,6 +159,9 @@
         <el-form-item label="联系方式">
           <el-input v-model="patientForm.contact" placeholder="其他联系方式，QQ, 微信等" />
         </el-form-item>
+        <el-form-item label="家庭住址">
+          <el-input v-model="patientForm.address" placeholder="请输入家庭住址" />
+        </el-form-item>
         <el-form-item label="登记日期" prop="date">
           <el-date-picker v-model="patientForm.date" type="date" placeholder="选择日期" format="YYYY-MM-DD"
             value-format="YYYY-MM-DD" style="width: 100%" />
@@ -166,13 +172,13 @@
               :label="`${doctor.name} (${doctor.level})`" :value="doctor.name" />
           </el-select>
         </el-form-item>
-        <el-form-item label="过敏史">
-          <el-input v-model="patientForm.AllergyHistory" type="textarea" :rows="3" placeholder="请输入过敏史信息" />
+        <el-form-item label="主诉及病史">
+          <el-input v-model="patientForm.AllergyHistory" type="textarea" :rows="3" placeholder="请输入病史信息" />
         </el-form-item>
         <el-form-item label="诊断" prop="detail">
           <el-input v-model="patientForm.detail" type="textarea" :rows="3" placeholder="请输入诊断信息" />
         </el-form-item>
-        <el-form-item label="医嘱">
+        <el-form-item label="检查及医嘱">
           <el-input v-model="patientForm.medical_advice" type="textarea" :rows="3" placeholder="请输入医嘱信息" />
         </el-form-item>
         <el-form-item label="治疗方案" prop="solution">
@@ -203,15 +209,16 @@
           <el-descriptions-item label="年龄">{{ viewingPatient.age }} 岁</el-descriptions-item>
           <el-descriptions-item label="电话">{{ viewingPatient.phone }}</el-descriptions-item>
           <el-descriptions-item label="联系方式">{{ viewingPatient.contact || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="家庭住址">{{ viewingPatient.address || '无' }}</el-descriptions-item>
           <el-descriptions-item label="登记日期">{{ viewingPatient.date }}</el-descriptions-item>
           <el-descriptions-item label="诊断医师">{{ viewingPatient.doc }}</el-descriptions-item>
-          <el-descriptions-item label="过敏史" :span="2">
+          <el-descriptions-item label="主诉及病史" :span="2">
             <div class="detail-text">{{ viewingPatient.AllergyHistory || '无' }}</div>
           </el-descriptions-item>
           <el-descriptions-item label="诊断" :span="2">
             <div class="detail-text">{{ viewingPatient.detail }}</div>
           </el-descriptions-item>
-          <el-descriptions-item label="医嘱" :span="2">
+          <el-descriptions-item label="检查及医嘱" :span="2">
             <div class="detail-text">{{ viewingPatient.medical_advice || '无' }}</div>
           </el-descriptions-item>
           <el-descriptions-item label="治疗方案" :span="2">
@@ -241,7 +248,8 @@ import {
   Search,
   RefreshLeft,
   Edit,
-  Delete
+  Delete,
+  CopyDocument
 } from '@element-plus/icons-vue'
 
 const dataStore = useDataStore()
@@ -276,6 +284,7 @@ const patientForm = ref({
   age: null,
   phone: '',
   contact: '',
+  address: '',
   date: new Date().toISOString().split('T')[0],
   doc: '',
   AllergyHistory: '',
@@ -295,9 +304,6 @@ const formRules = {
   ],
   age: [
     { type: 'number', min: 0, max: 150, message: '年龄必须在 0 到 150 之间', trigger: 'blur' }
-  ],
-  phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ],
   date: [
     { required: true, message: '请选择登记日期', trigger: 'change' }
@@ -421,6 +427,27 @@ const handleEdit = (row) => {
   showAddDialog.value = true
 }
 
+const handleCopy = (row) => {
+  // 复制患者基本信息，但清空诊断相关信息用于新的就诊记录
+  editingPatient.value = null // 确保是添加模式
+  patientForm.value = {
+    name: row.name,
+    sex: row.sex,
+    age: Number(row.age) || null, // 确保年龄是数字类型
+    phone: row.phone,
+    contact: row.contact,
+    address: row.address,
+    date: new Date().toISOString().split('T')[0], // 设置为当前日期
+    doc: row.doc,
+    AllergyHistory: row.AllergyHistory,
+    detail: '', // 清空诊断
+    medical_advice: '', // 清空医嘱
+    solution: '' // 清空治疗方案
+  }
+  showAddDialog.value = true
+  ElMessage.success('已复制患者基本信息，请填写新的就诊记录')
+}
+
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm(
@@ -450,6 +477,7 @@ const handleDialogClose = () => {
     age: null,
     phone: '',
     contact: '',
+    address: '',
     date: new Date().toISOString().split('T')[0],
     doc: '',
     AllergyHistory: '',
@@ -476,6 +504,7 @@ const handleSubmit = async () => {
       phone: String(patientForm.value.phone || ''),
       age: String(patientForm.value.age || ''),
       contact: String(patientForm.value.contact || ''),
+      address: String(patientForm.value.address || ''),
       doc: String(patientForm.value.doc || ''),
       detail: String(patientForm.value.detail || ''),
       solution: String(patientForm.value.solution || ''),

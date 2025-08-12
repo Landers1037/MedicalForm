@@ -16,6 +16,7 @@
     "productVersion": "1.0.0",
     "copyright": "Copyright 2025 医疗管理表单系统 @Landers版权所有"
   },
+  "devServer": "localhost:5173",
   "windows": {
     "hideTitleBar": true,
     "disableResize": false,

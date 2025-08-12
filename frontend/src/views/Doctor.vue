@@ -263,9 +263,6 @@ const formRules = {
   level: [
     { required: true, message: '请选择或输入级别', trigger: 'change' }
   ],
-  phone: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-  ],
   email: [
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ]

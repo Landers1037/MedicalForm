@@ -460,9 +460,8 @@ func (a *App) MigrateOldDatabase(oldDbPath string) error {
 			Sex:            oldPatient.Sex,
 			Age:            oldPatient.Age,
 			IllTime:        oldPatient.IllTime,
-			Phone:          "",
-			Contact:        oldPatient.Phone, // 旧版本没有联系方式字段
-			AllergyHistory: "",               // 旧版本没有过敏史字段
+			Phone:          oldPatient.Phone,
+			AllergyHistory: "", // 旧版本没有过敏史字段
 			Detail:         oldPatient.Detail,
 			Solution:       oldPatient.Solution,
 			MedicalAdvice:  oldPatient.MedicalAdvice,
