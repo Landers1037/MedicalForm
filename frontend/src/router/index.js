@@ -26,6 +26,22 @@ const routes = [
     }
   },
   {
+    path: '/template',
+    name: 'Template',
+    component: () => import('@/views/Template.vue'),
+    meta: {
+      title: '模板管理'
+    }
+  },
+  {
+    path: '/medicine',
+    name: 'Medicine',
+    component: () => import('@/views/Medicine.vue'),
+    meta: {
+      title: '药品管理'
+    }
+  },
+  {
     path: '/setting',
     name: 'Setting',
     component: () => import('@/views/Setting.vue'),

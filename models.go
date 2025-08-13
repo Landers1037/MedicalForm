@@ -68,3 +68,38 @@ type Doctor struct {
 func (Doctor) TableName() string {
 	return "doctor"
 }
+
+const (
+	TemplateTypeDiagnosis = "diagnosis"
+	TemplateTypeAdvice    = "advice"
+	TemplateTypeTreatment = "treatment"
+)
+
+// 文本模板 三类：诊断，医嘱，治疗方案
+type Template struct {
+	ID      uint   `gorm:"primaryKey;autoIncrement" json:"id"` // 主键ID
+	Name    string `gorm:"size:50,unique" json:"name"`         // 名称
+	Type    string `gorm:"size:50" json:"type"`                // 类型
+	Content string `gorm:"type:text" json:"content"`           // 内容
+}
+
+// TableName 指定表名为小写下划线格式
+func (Template) TableName() string {
+	return "template"
+}
+
+// Medicine 药品信息模型
+type Medicine struct {
+	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"` // 主键ID
+	Name         string    `gorm:"size:100" json:"name"`               // 药品名
+	Manufacturer string    `gorm:"size:200" json:"manufacturer"`       // 生产厂家
+	Price        string    `gorm:"size:50" json:"price"`               // 价格
+	Specification string   `gorm:"size:200" json:"specification"`      // 药品规格
+	CreatedAt    time.Time `json:"created_at"`                         // 创建时间
+	UpdatedAt    time.Time `json:"updated_at"`                         // 更新时间
+}
+
+// TableName 指定表名为小写下划线格式
+func (Medicine) TableName() string {
+	return "medicine"
+}

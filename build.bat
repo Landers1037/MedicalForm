@@ -1,1 +1,1 @@
-wails build -trimpath -webview2 embed
+wails build -trimpath -webview2 embed -ldflags "-X main.Version=1.0.1"

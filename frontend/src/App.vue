@@ -74,6 +74,14 @@
           <el-icon><User /></el-icon>
           <span>医师管理</span>
         </el-menu-item>
+        <el-menu-item index="/template">
+          <el-icon><Document /></el-icon>
+          <span>模板管理</span>
+        </el-menu-item>
+        <el-menu-item index="/medicine">
+          <el-icon><Grape /></el-icon>
+          <span>药品管理</span>
+        </el-menu-item>
         <el-menu-item index="/setting">
           <el-icon><Setting /></el-icon>
           <span>设置</span>
@@ -107,6 +115,7 @@ import {
   User,
   Setting,
   InfoFilled,
+  Grape,
   Sunny,
   Moon,
   Minus,

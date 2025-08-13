@@ -103,6 +103,7 @@
                     />
                     <el-button
                       type="primary"
+                      plain
                       :icon="FolderOpened"
                       @click="handleBrowseDatabase"
                       class="browse-btn"
@@ -124,16 +125,16 @@
             </div>
             <div class="setting-control">
               <div class="db-actions">
-                <el-button type="success" @click="handleMigrateOldDatabase" :icon="Upload">
+                <el-button type="success" plain @click="handleMigrateOldDatabase" :icon="Upload">
                   合并旧版本
                 </el-button>
-                <el-button type="primary" @click="handleBackup" :icon="Download">
+                <el-button type="primary" plain @click="handleBackup" :icon="Download">
                   备份数据库
                 </el-button>
-                <el-button type="warning" @click="handleBackupAndClear" :icon="RefreshLeft">
+                <el-button type="warning" plain @click="handleBackupAndClear" :icon="RefreshLeft">
                   备份并清空
                 </el-button>
-                <el-button type="danger" @click="handleClearDatabase" :icon="Delete">
+                <el-button type="danger" plain @click="handleClearDatabase" :icon="Delete">
                   清空数据库
                 </el-button>
               </div>
@@ -205,7 +206,7 @@
               <span class="label-desc">将患者数据导出为Excel文件</span>
             </div>
             <div class="setting-control">
-              <el-button type="success" @click="handleExport" :icon="Upload">
+              <el-button type="success" plain @click="handleExport" :icon="Upload">
                 导出数据
               </el-button>
             </div>
@@ -226,7 +227,7 @@
                 accept=".xlsx,.xls"
                 @change="handleImport"
               >
-                <el-button type="primary" :icon="Download">
+                <el-button type="primary" plain :icon="Download">
                   选择文件导入
                 </el-button>
               </el-upload>

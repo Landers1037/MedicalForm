@@ -15,8 +15,9 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
-	db  *DatabaseService
+	ctx             context.Context
+	db              *DatabaseService
+	medicineCrawler *MedicineCrawler // 药品爬虫实例
 }
 
 // NewApp creates a new App application struct
@@ -34,6 +35,8 @@ func (a *App) startup(ctx context.Context) {
 	if err := a.db.InitDB(); err != nil {
 		fmt.Printf("Failed to initialize database: %v\n", err)
 	}
+	// 初始化药品爬虫
+	a.medicineCrawler = NewMedicineCrawler(a.db.GetDB())
 }
 
 // GetAllPatients 获取所有患者数据
@@ -179,6 +182,39 @@ func (a *App) BackupDatabase(clearAfterBackup bool) error {
 	}
 
 	return nil
+}
+
+// CrawlMedicineData 开始爬取药品数据
+func (a *App) CrawlMedicineData() error {
+	if a.medicineCrawler == nil {
+		return fmt.Errorf("药品爬虫未初始化")
+	}
+	return a.medicineCrawler.CrawlMedicineData()
+}
+
+// CrawlMedicineDataWithPages 分页爬取药品数据
+func (a *App) CrawlMedicineDataWithPages(maxPages int) error {
+	if a.medicineCrawler == nil {
+		return fmt.Errorf("药品爬虫未初始化")
+	}
+	if maxPages <= 0 {
+		maxPages = 5 // 默认爬取5页
+	}
+	return a.medicineCrawler.CrawlMedicineDataWithPagination(maxPages)
+}
+
+// GetMedicineCount 获取数据库中药品数量
+func (a *App) GetMedicineCount() (int64, error) {
+	if a.medicineCrawler == nil {
+		return 0, fmt.Errorf("药品爬虫未初始化")
+	}
+	return a.medicineCrawler.GetMedicineCount()
+}
+
+// ClearAllMedicines 清空所有药品数据
+func (a *App) ClearAllMedicines() error {
+	result := a.db.GetDB().Where("1 = 1").Delete(&Medicine{})
+	return result.Error
 }
 
 // GetConfig 获取配置
@@ -412,6 +448,126 @@ func (a *App) GetMetaInfo() map[string]string {
 		"title":   Title,   // 程序标题
 		"version": Version, // 程序版本
 	}
+}
+
+// GetAllTemplates 获取所有模板数据
+func (a *App) GetAllTemplates() ([]Template, error) {
+	var templates []Template
+	result := a.db.GetDB().Order("type, id desc").Find(&templates)
+	return templates, result.Error
+}
+
+// CreateTemplate 创建新模板
+func (a *App) CreateTemplate(template Template) (*Template, error) {
+	// 检查名称是否重复
+	var existingTemplate Template
+	result := a.db.GetDB().Where("name = ?", template.Name).First(&existingTemplate)
+	if result.Error == nil {
+		return nil, fmt.Errorf("模板名称已存在")
+	}
+	if result.Error != gorm.ErrRecordNotFound {
+		return nil, result.Error
+	}
+
+	// 创建新模板
+	result = a.db.GetDB().Create(&template)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &template, nil
+}
+
+// UpdateTemplate 更新模板
+func (a *App) UpdateTemplate(template Template) error {
+	// 检查名称是否与其他模板重复
+	var existingTemplate Template
+	result := a.db.GetDB().Where("name = ? AND id != ?", template.Name, template.ID).First(&existingTemplate)
+	if result.Error == nil {
+		return fmt.Errorf("模板名称已存在")
+	}
+	if result.Error != gorm.ErrRecordNotFound {
+		return result.Error
+	}
+
+	// 更新模板
+	result = a.db.GetDB().Save(&template)
+	return result.Error
+}
+
+// DeleteTemplate 删除模板
+func (a *App) DeleteTemplate(id uint) error {
+	result := a.db.GetDB().Delete(&Template{}, id)
+	return result.Error
+}
+
+// GetTemplatesByType 根据类型获取模板
+func (a *App) GetTemplatesByType(templateType string) ([]Template, error) {
+	var templates []Template
+	result := a.db.GetDB().Where("type = ?", templateType).Find(&templates)
+	return templates, result.Error
+}
+
+// GetAllMedicines 获取所有药品数据
+func (a *App) GetAllMedicines() ([]Medicine, error) {
+	var medicines []Medicine
+	result := a.db.GetDB().Order("id desc").Find(&medicines)
+	return medicines, result.Error
+}
+
+// GetMedicineByID 根据ID获取药品数据
+func (a *App) GetMedicineByID(id uint) (*Medicine, error) {
+	var medicine Medicine
+	result := a.db.GetDB().First(&medicine, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &medicine, nil
+}
+
+// CreateMedicine 创建新药品
+func (a *App) CreateMedicine(medicine Medicine) (*Medicine, error) {
+	// 设置创建时间
+	medicine.CreatedAt = time.Now()
+	medicine.UpdatedAt = time.Now()
+	
+	result := a.db.GetDB().Create(&medicine)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &medicine, nil
+}
+
+// UpdateMedicine 更新药品信息
+func (a *App) UpdateMedicine(medicine Medicine) error {
+	// 设置更新时间
+	medicine.UpdatedAt = time.Now()
+	
+	result := a.db.GetDB().Save(&medicine)
+	return result.Error
+}
+
+// DeleteMedicine 删除药品
+func (a *App) DeleteMedicine(id uint) error {
+	result := a.db.GetDB().Delete(&Medicine{}, id)
+	return result.Error
+}
+
+// SearchMedicines 搜索药品
+func (a *App) SearchMedicines(searchType, keyword string) ([]Medicine, error) {
+	var medicines []Medicine
+	var result *gorm.DB
+	
+	switch searchType {
+	case "name":
+		result = a.db.GetDB().Where("name LIKE ?", "%"+keyword+"%").Find(&medicines)
+	case "manufacturer":
+		result = a.db.GetDB().Where("manufacturer LIKE ?", "%"+keyword+"%").Find(&medicines)
+	default:
+		// 默认搜索药品名称和生产厂家
+		result = a.db.GetDB().Where("name LIKE ? OR manufacturer LIKE ?", "%"+keyword+"%", "%"+keyword+"%").Find(&medicines)
+	}
+	
+	return medicines, result.Error
 }
 
 // MigrateOldDatabase 迁移旧版本数据库

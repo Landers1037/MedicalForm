@@ -13,6 +13,11 @@ import (
 var assets embed.FS
 
 func main() {
+	// 检查单例模式 - 如果已有实例运行则激活现有窗口并退出
+	if !CheckSingleInstance() {
+		return
+	}
+	
 	// 加载软件配置
 	if err := LoadMetaConfig(); err != nil {
 		println("Warning: Failed to load meta config:", err.Error())

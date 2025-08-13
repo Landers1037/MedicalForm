@@ -8,11 +8,25 @@ export function AddPatient(arg1:main.Patient):Promise<void>;
 
 export function BackupDatabase(arg1:boolean):Promise<void>;
 
+export function ClearAllMedicines():Promise<void>;
+
+export function CrawlMedicineData():Promise<void>;
+
+export function CrawlMedicineDataWithPages(arg1:number):Promise<void>;
+
 export function CreateDatabase():Promise<void>;
+
+export function CreateMedicine(arg1:main.Medicine):Promise<main.Medicine>;
+
+export function CreateTemplate(arg1:main.Template):Promise<main.Template>;
 
 export function DeleteDoctor(arg1:number):Promise<void>;
 
+export function DeleteMedicine(arg1:number):Promise<void>;
+
 export function DeletePatient(arg1:number):Promise<void>;
+
+export function DeleteTemplate(arg1:number):Promise<void>;
 
 export function DropDatabase():Promise<void>;
 
@@ -20,7 +34,11 @@ export function GetAllConfigs():Promise<Record<string, string>>;
 
 export function GetAllDoctors():Promise<Array<main.Doctor>>;
 
+export function GetAllMedicines():Promise<Array<main.Medicine>>;
+
 export function GetAllPatients():Promise<Array<main.Patient>>;
+
+export function GetAllTemplates():Promise<Array<main.Template>>;
 
 export function GetAppInfo():Promise<Record<string, any>>;
 
@@ -32,13 +50,21 @@ export function GetDatabasePath():Promise<string>;
 
 export function GetDoctorByID(arg1:number):Promise<main.Doctor>;
 
+export function GetMedicineByID(arg1:number):Promise<main.Medicine>;
+
+export function GetMedicineCount():Promise<number>;
+
 export function GetMetaInfo():Promise<Record<string, string>>;
 
 export function GetPatientByID(arg1:number):Promise<main.Patient>;
 
+export function GetTemplatesByType(arg1:string):Promise<Array<main.Template>>;
+
 export function MigrateOldDatabase(arg1:string):Promise<void>;
 
 export function SearchDoctors(arg1:string,arg2:string):Promise<Array<main.Doctor>>;
+
+export function SearchMedicines(arg1:string,arg2:string):Promise<Array<main.Medicine>>;
 
 export function SearchPatients(arg1:string,arg2:string):Promise<Array<main.Patient>>;
 
@@ -48,4 +74,8 @@ export function SetConfig(arg1:string,arg2:string):Promise<void>;
 
 export function UpdateDoctor(arg1:main.Doctor):Promise<void>;
 
+export function UpdateMedicine(arg1:main.Medicine):Promise<void>;
+
 export function UpdatePatient(arg1:main.Patient):Promise<void>;
+
+export function UpdateTemplate(arg1:main.Template):Promise<void>;

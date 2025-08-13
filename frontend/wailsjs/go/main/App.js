@@ -14,16 +14,44 @@ export function BackupDatabase(arg1) {
   return window['go']['main']['App']['BackupDatabase'](arg1);
 }
 
+export function ClearAllMedicines() {
+  return window['go']['main']['App']['ClearAllMedicines']();
+}
+
+export function CrawlMedicineData() {
+  return window['go']['main']['App']['CrawlMedicineData']();
+}
+
+export function CrawlMedicineDataWithPages(arg1) {
+  return window['go']['main']['App']['CrawlMedicineDataWithPages'](arg1);
+}
+
 export function CreateDatabase() {
   return window['go']['main']['App']['CreateDatabase']();
+}
+
+export function CreateMedicine(arg1) {
+  return window['go']['main']['App']['CreateMedicine'](arg1);
+}
+
+export function CreateTemplate(arg1) {
+  return window['go']['main']['App']['CreateTemplate'](arg1);
 }
 
 export function DeleteDoctor(arg1) {
   return window['go']['main']['App']['DeleteDoctor'](arg1);
 }
 
+export function DeleteMedicine(arg1) {
+  return window['go']['main']['App']['DeleteMedicine'](arg1);
+}
+
 export function DeletePatient(arg1) {
   return window['go']['main']['App']['DeletePatient'](arg1);
+}
+
+export function DeleteTemplate(arg1) {
+  return window['go']['main']['App']['DeleteTemplate'](arg1);
 }
 
 export function DropDatabase() {
@@ -38,8 +66,16 @@ export function GetAllDoctors() {
   return window['go']['main']['App']['GetAllDoctors']();
 }
 
+export function GetAllMedicines() {
+  return window['go']['main']['App']['GetAllMedicines']();
+}
+
 export function GetAllPatients() {
   return window['go']['main']['App']['GetAllPatients']();
+}
+
+export function GetAllTemplates() {
+  return window['go']['main']['App']['GetAllTemplates']();
 }
 
 export function GetAppInfo() {
@@ -62,6 +98,14 @@ export function GetDoctorByID(arg1) {
   return window['go']['main']['App']['GetDoctorByID'](arg1);
 }
 
+export function GetMedicineByID(arg1) {
+  return window['go']['main']['App']['GetMedicineByID'](arg1);
+}
+
+export function GetMedicineCount() {
+  return window['go']['main']['App']['GetMedicineCount']();
+}
+
 export function GetMetaInfo() {
   return window['go']['main']['App']['GetMetaInfo']();
 }
@@ -70,12 +114,20 @@ export function GetPatientByID(arg1) {
   return window['go']['main']['App']['GetPatientByID'](arg1);
 }
 
+export function GetTemplatesByType(arg1) {
+  return window['go']['main']['App']['GetTemplatesByType'](arg1);
+}
+
 export function MigrateOldDatabase(arg1) {
   return window['go']['main']['App']['MigrateOldDatabase'](arg1);
 }
 
 export function SearchDoctors(arg1, arg2) {
   return window['go']['main']['App']['SearchDoctors'](arg1, arg2);
+}
+
+export function SearchMedicines(arg1, arg2) {
+  return window['go']['main']['App']['SearchMedicines'](arg1, arg2);
 }
 
 export function SearchPatients(arg1, arg2) {
@@ -94,6 +146,14 @@ export function UpdateDoctor(arg1) {
   return window['go']['main']['App']['UpdateDoctor'](arg1);
 }
 
+export function UpdateMedicine(arg1) {
+  return window['go']['main']['App']['UpdateMedicine'](arg1);
+}
+
 export function UpdatePatient(arg1) {
   return window['go']['main']['App']['UpdatePatient'](arg1);
+}
+
+export function UpdateTemplate(arg1) {
+  return window['go']['main']['App']['UpdateTemplate'](arg1);
 }

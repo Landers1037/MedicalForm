@@ -12,7 +12,7 @@
             <p class="page-desc">管理医师信息，包括姓名、性别、级别等</p>
           </div>
           <div class="action-section">
-            <el-button type="primary" :icon="Plus" @click="handleAdd">
+            <el-button type="primary" plain :icon="Plus" @click="handleAdd">
               添加医师
             </el-button>
           </div>
@@ -61,7 +61,7 @@
               </el-select>
             </el-col>
             <el-col :span="4">
-              <el-button type="primary" :icon="Refresh" @click="handleRefresh">
+              <el-button type="primary" plain :icon="Refresh" @click="handleRefresh">
                 刷新
               </el-button>
             </el-col>
@@ -199,8 +199,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="showAddDialog = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="submitting">
+          <el-button @click="showAddDialog = false" plain>取消</el-button>
+          <el-button type="primary" plain @click="handleSubmit" :loading="submitting">
             {{ editingDoctor ? '更新' : '添加' }}
           </el-button>
         </span>
