@@ -501,8 +501,9 @@ onMounted(async () => {
   padding: 16px;
   max-width: 800px;
   margin: 0 auto;
-  height: calc(100vh - 60px);
+  height: auto;
   overflow: auto;
+  user-select: none;
 }
 
 .setting-section {

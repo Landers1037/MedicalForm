@@ -301,8 +301,9 @@ const backendTech = [
   padding: 16px;
   max-width: 1000px;
   margin: 0 auto;
-  height: calc(100vh - 60px);
+  height: auto;
   overflow: auto;
+  user-select: none;
 }
 
 .intro-section,

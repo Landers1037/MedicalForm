@@ -95,7 +95,7 @@
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('address')" prop="address" label="家庭住址" width="150"
             show-overflow-tooltip />
-          <el-table-column v-if="visibleColumns.includes('parent')" prop="parent" label="家长" width="100"
+          <el-table-column v-if="visibleColumns.includes('parent')" prop="parent" label="监护人" width="100"
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('work')" prop="work" label="工作" width="100"
             show-overflow-tooltip />
@@ -104,11 +104,11 @@
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('doc')" prop="doc" label="诊断医师" width="120"
             show-overflow-tooltip />
-          <el-table-column v-if="visibleColumns.includes('detail')" prop="detail" label="诊断" width="200"
+          <el-table-column v-if="visibleColumns.includes('detail')" prop="detail" label="诊断"
             show-overflow-tooltip />
-          <el-table-column v-if="visibleColumns.includes('solution')" prop="solution" label="治疗方案" width="200"
+          <el-table-column v-if="visibleColumns.includes('solution')" prop="solution" label="治疗方案"
             show-overflow-tooltip />
-          <el-table-column v-if="visibleColumns.includes('medical_advice')" prop="medical_advice" label="医嘱" width="200"
+          <el-table-column v-if="visibleColumns.includes('medical_advice')" prop="medical_advice" label="医嘱"
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('fee')" prop="fee" label="费用" width="100" sortable />
           <el-table-column v-if="visibleColumns.includes('money')" prop="money" label="费用备注" width="120"
@@ -137,7 +137,7 @@
 
         <!-- 分页 -->
         <div class="pagination-wrapper">
-          <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+          <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 30, 40, 50, 100]"
             :total="filteredData.length" layout="total, sizes, prev, pager, next, jumper"
             @size-change="handleSizeChange" @current-change="handleCurrentChange" />
         </div>
@@ -145,7 +145,7 @@
     </div>
 
     <!-- 添加/编辑对话框 -->
-    <el-dialog v-model="showAddDialog" :title="editingPatient ? '编辑患者就诊记录' : '添加患者就诊记录'" width="680px"
+    <el-dialog v-model="showAddDialog" :title="editingPatient ? '编辑患者就诊记录' : '添加患者就诊记录'" :width="dialogWidth"
       :close-on-click-modal="false" @close="handleDialogClose">
       <el-form ref="formRef" :model="patientForm" :rules="formRules" label-width="100px">
         <el-row :gutter="20">
@@ -183,15 +183,15 @@
         </el-form-item>
         <el-row :gutter="8">
           <el-col :span="12">
-            <el-form-item label="家长">
-              <el-input v-model="patientForm.parent" placeholder="请输入家长姓名" />
+            <el-form-item label="监护人">
+              <el-input v-model="patientForm.parent" placeholder="请输入监护人姓名" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="工作">
               <div style="display: flex; gap: 8px;">
-                <el-input v-model="patientForm.work" placeholder="请输入工作" style="flex: 1;width: 120px;" />
-                <el-select v-model="selectedWorkOption" placeholder="选择" style="width: 80px;" @change="fillWorkOption">
+                <el-input v-model="patientForm.work" placeholder="请输入工作" style="flex: 1;width: 200px;" />
+                <el-select v-model="selectedWorkOption" placeholder="选快速择" style="width: 100px;" @change="fillWorkOption">
                   <el-option label="学生" value="学生" />
                   <el-option label="职工" value="职工" />
                   <el-option label="自由职业" value="自由职业" />
@@ -302,7 +302,7 @@
           <el-descriptions-item label="电话">{{ viewingPatient.phone }}</el-descriptions-item>
           <el-descriptions-item label="联系方式">{{ viewingPatient.contact || '无' }}</el-descriptions-item>
           <el-descriptions-item label="家庭住址">{{ viewingPatient.address || '无' }}</el-descriptions-item>
-          <el-descriptions-item label="家长">{{ viewingPatient.parent || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="监护人">{{ viewingPatient.parent || '无' }}</el-descriptions-item>
           <el-descriptions-item label="工作">{{ viewingPatient.work || '无' }}</el-descriptions-item>
           <el-descriptions-item label="登记日期">{{ viewingPatient.date }}</el-descriptions-item>
           <el-descriptions-item label="患病时间">{{ viewingPatient.ill_time || '无' }}</el-descriptions-item>
@@ -541,6 +541,23 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, end)
 })
 
+// 弹框宽度响应式计算
+const dialogWidth = computed(() => {
+  if (typeof window !== 'undefined') {
+    const windowWidth = window.innerWidth
+    if (windowWidth >= 1920) {
+      return '900px'  // 大屏幕时更宽
+    } else if (windowWidth >= 1440) {
+      return '800px'  // 中等屏幕
+    } else if (windowWidth >= 1024) {
+      return '720px'  // 普通屏幕
+    } else {
+      return '90%'    // 小屏幕时使用百分比
+    }
+  }
+  return '680px' // 默认宽度
+})
+
 // 方法
 const handleRefresh = async () => {
   if (isUnmounted.value) return
@@ -605,7 +622,7 @@ const handleCopy = (row) => {
     phone: row.phone,
     contact: row.contact,
     address: row.address,
-    parent: row.parent || '', // 复制家长信息
+    parent: row.parent || '', // 复制监护人信息
     work: row.work || '', // 复制工作信息
     date: new Date().toISOString().split('T')[0], // 设置为当前日期
     doc: row.doc,
@@ -821,6 +838,11 @@ const handleSubmit = async () => {
 // 组件是否已卸载
 const isUnmounted = ref(false)
 
+// 窗口大小变化监听器
+const handleResize = () => {
+  // 触发dialogWidth重新计算
+}
+
 // 初始化
 onMounted(async () => {
   loading.value = true
@@ -829,6 +851,9 @@ onMounted(async () => {
     await doctorStore.fetchAllDoctors()
     await templateStore.initTemplates()
     await loadColumnConfigs() // 加载列配置
+    
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', handleResize)
   } catch (error) {
     if (!isUnmounted.value) {
       console.error('加载数据失败：', error)
@@ -904,7 +929,7 @@ const initColumnConfigs = () => {
     { columnKey: 'age', label: '年龄', visible: true, sortOrder: 3 },
     { columnKey: 'phone', label: '电话', visible: true, sortOrder: 4 },
     { columnKey: 'address', label: '家庭住址', visible: true, sortOrder: 5 },
-    { columnKey: 'parent', label: '家长', visible: true, sortOrder: 6 },
+    { columnKey: 'parent', label: '监护人', visible: true, sortOrder: 6 },
     { columnKey: 'work', label: '工作', visible: true, sortOrder: 7 },
     { columnKey: 'detail', label: '诊断', visible: true, sortOrder: 8 },
     { columnKey: 'contact', label: '联系方式', visible: false, sortOrder: 9 },
@@ -964,7 +989,7 @@ const getColumnLabel = (columnKey) => {
     age: '年龄',
     phone: '电话',
     address: '家庭住址',
-    parent: '家长',
+    parent: '监护人',
     work: '工作',
     detail: '诊断',
     contact: '联系方式',
@@ -1014,6 +1039,8 @@ const handleCancelColumnConfig = () => {
 // 组件卸载时清理
 onUnmounted(() => {
   isUnmounted.value = true
+  // 移除窗口大小变化监听器
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -1040,6 +1067,7 @@ onUnmounted(() => {
 
 .search-section {
   margin-bottom: 16px;
+    user-select: none;
 }
 
 .search-card {
@@ -1071,7 +1099,6 @@ onUnmounted(() => {
   flex-direction: column;
   overflow: hidden;
   padding: 16px;
-  max-height: calc(100vh - 240px);
 }
 
 .table-card .el-table {

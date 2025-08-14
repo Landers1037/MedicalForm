@@ -241,6 +241,8 @@ onMounted(async () => {
   box-shadow: var(--el-box-shadow-light);
   user-select: none;
   cursor: pointer;
+  position: relative;
+  z-index: 9998; /* 确保header在弹框之上 */
 }
 
 .header-content {
@@ -281,12 +283,15 @@ onMounted(async () => {
   border-bottom: 1px solid var(--el-border-color-light);
   padding: 0 20px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 9997; /* 确保导航栏在弹框之上 */
 }
 
 .nav-menu {
   border-bottom: none;
   background-color: transparent;
   height: 50px;
+  user-select: none;
 }
 
 .nav-menu .el-menu-item {
@@ -318,6 +323,8 @@ onMounted(async () => {
   align-items: center;
   gap: 4px;
   margin-left: 8px;
+  position: relative;
+  z-index: 9999; /* 确保窗口控制按钮始终在最顶层 */
 }
 
 .window-control-btn {
@@ -326,6 +333,8 @@ onMounted(async () => {
   border-radius: 4px;
   transition: all 0.2s;
   color: var(--el-text-color-regular);
+  position: relative;
+  z-index: 10000; /* 确保按钮本身也在最顶层 */
 }
 
 .window-control-btn:hover {
