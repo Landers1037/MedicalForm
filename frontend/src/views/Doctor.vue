@@ -465,8 +465,8 @@ onUnmounted(() => {
 
 <style scoped>
 .doctor-container {
-  padding: 20px;
-  height: calc(100vh - 60px);
+  padding: 16px;
+  height: calc(100vh - 120px);
   overflow: auto;
 }
 

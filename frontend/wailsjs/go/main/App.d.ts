@@ -30,6 +30,8 @@ export function DeleteTemplate(arg1:number):Promise<void>;
 
 export function DropDatabase():Promise<void>;
 
+export function ExportPatientsToExcel():Promise<string>;
+
 export function GetAllConfigs():Promise<Record<string, string>>;
 
 export function GetAllDoctors():Promise<Array<main.Doctor>>;
@@ -41,6 +43,8 @@ export function GetAllPatients():Promise<Array<main.Patient>>;
 export function GetAllTemplates():Promise<Array<main.Template>>;
 
 export function GetAppInfo():Promise<Record<string, any>>;
+
+export function GetColumnConfigs():Promise<Array<main.ColumnConfig>>;
 
 export function GetConfig(arg1:string):Promise<string>;
 
@@ -60,7 +64,11 @@ export function GetPatientByID(arg1:number):Promise<main.Patient>;
 
 export function GetTemplatesByType(arg1:string):Promise<Array<main.Template>>;
 
+export function InitDefaultColumnConfigs():Promise<void>;
+
 export function MigrateOldDatabase(arg1:string):Promise<void>;
+
+export function SaveColumnConfigs(arg1:Array<main.ColumnConfig>):Promise<void>;
 
 export function SearchDoctors(arg1:string,arg2:string):Promise<Array<main.Doctor>>;
 

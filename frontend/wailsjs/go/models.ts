@@ -1,5 +1,49 @@
 export namespace main {
 	
+	export class ColumnConfig {
+	    id: number;
+	    table_name: string;
+	    column_key: string;
+	    visible: boolean;
+	    sort_order: number;
+	    // Go type: time
+	    created_at: any;
+	    // Go type: time
+	    updated_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new ColumnConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.table_name = source["table_name"];
+	        this.column_key = source["column_key"];
+	        this.visible = source["visible"];
+	        this.sort_order = source["sort_order"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Doctor {
 	    id: number;
 	    name: string;
@@ -99,6 +143,7 @@ export namespace main {
 	    name: string;
 	    sex: string;
 	    age: string;
+	    id_card: string;
 	    ill_time: string;
 	    phone: string;
 	    contact: string;
@@ -111,6 +156,7 @@ export namespace main {
 	    medical_advice: string;
 	    addon: string;
 	    money: string;
+	    fee: number;
 	    doc: string;
 	    // Go type: time
 	    created_at: any;
@@ -129,6 +175,7 @@ export namespace main {
 	        this.name = source["name"];
 	        this.sex = source["sex"];
 	        this.age = source["age"];
+	        this.id_card = source["id_card"];
 	        this.ill_time = source["ill_time"];
 	        this.phone = source["phone"];
 	        this.contact = source["contact"];
@@ -141,6 +188,7 @@ export namespace main {
 	        this.medical_advice = source["medical_advice"];
 	        this.addon = source["addon"];
 	        this.money = source["money"];
+	        this.fee = source["fee"];
 	        this.doc = source["doc"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);

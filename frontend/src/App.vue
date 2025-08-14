@@ -11,6 +11,15 @@
         </div>
         
         <div class="header-actions">
+          <!-- 菜单折叠按钮 -->
+          <el-tooltip :content="isMenuCollapsed ? '展开菜单' : '收起菜单'">
+            <el-button
+              circle
+              @click="isMenuCollapsed = !isMenuCollapsed"
+              :icon="isMenuCollapsed ? CaretBottom : CaretTop"
+            />
+          </el-tooltip>
+          
           <!-- 主题切换按钮 -->
           <el-tooltip :content="themeStore.isDark ? '切换到明亮模式' : '切换到暗黑模式'">
             <el-button
@@ -55,43 +64,45 @@
     </el-header>
     
     <!-- 导航菜单栏 -->
-    <div class="nav-bar">
-      <el-menu
-        :default-active="$route.path"
-        mode="horizontal"
-        class="nav-menu"
-        @select="handleMenuSelect"
-      >
-        <el-menu-item index="/">
-          <el-icon><House /></el-icon>
-          <span>首页</span>
-        </el-menu-item>
-        <el-menu-item index="/panel">
-          <el-icon><Grid /></el-icon>
-          <span>数据管理</span>
-        </el-menu-item>
-        <el-menu-item index="/doctor">
-          <el-icon><User /></el-icon>
-          <span>医师管理</span>
-        </el-menu-item>
-        <el-menu-item index="/template">
-          <el-icon><Document /></el-icon>
-          <span>模板管理</span>
-        </el-menu-item>
-        <el-menu-item index="/medicine">
-          <el-icon><Grape /></el-icon>
-          <span>药品管理</span>
-        </el-menu-item>
-        <el-menu-item index="/setting">
-          <el-icon><Setting /></el-icon>
-          <span>设置</span>
-        </el-menu-item>
-        <el-menu-item index="/about">
-          <el-icon><InfoFilled /></el-icon>
-          <span>关于</span>
-        </el-menu-item>
-      </el-menu>
-    </div>
+    <el-collapse-transition>
+      <div v-show="!isMenuCollapsed" class="nav-bar">
+        <el-menu
+          :default-active="$route.path"
+          mode="horizontal"
+          class="nav-menu"
+          @select="handleMenuSelect"
+        >
+          <el-menu-item index="/">
+            <el-icon><House /></el-icon>
+            <span>首页</span>
+          </el-menu-item>
+          <el-menu-item index="/panel">
+            <el-icon><Grid /></el-icon>
+            <span>数据管理</span>
+          </el-menu-item>
+          <el-menu-item index="/doctor">
+            <el-icon><User /></el-icon>
+            <span>医师管理</span>
+          </el-menu-item>
+          <el-menu-item index="/template">
+            <el-icon><Document /></el-icon>
+            <span>模板管理</span>
+          </el-menu-item>
+          <el-menu-item index="/medicine">
+            <el-icon><Grape /></el-icon>
+            <span>药品管理</span>
+          </el-menu-item>
+          <el-menu-item index="/setting">
+            <el-icon><Setting /></el-icon>
+            <span>设置</span>
+          </el-menu-item>
+          <el-menu-item index="/about">
+            <el-icon><InfoFilled /></el-icon>
+            <span>关于</span>
+          </el-menu-item>
+        </el-menu>
+      </div>
+    </el-collapse-transition>
     
     <!-- 主内容区域 -->
     <el-main class="app-main">
@@ -122,7 +133,10 @@ import {
   FullScreen,
   CopyDocument,
   Close,
-  ArrowDown
+  ArrowDown,
+  Menu,
+  CaretBottom,
+  CaretTop
 } from '@element-plus/icons-vue'
 import { GetMetaInfo } from '../wailsjs/go/main/App'
 import { WindowMinimise, WindowToggleMaximise, Quit, WindowIsMaximised, WindowHide, WindowShow } from '../wailsjs/runtime/runtime'
@@ -132,6 +146,9 @@ const appTitle = ref('医疗表单管理系统')
 
 // 窗口状态
 const isMaximized = ref(false)
+
+// 导航菜单折叠状态
+const isMenuCollapsed = ref(false)
 
 // 加载程序信息
 const loadAppInfo = async () => {

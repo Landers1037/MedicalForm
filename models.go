@@ -10,26 +10,30 @@ type Patient struct {
 	// 兼容性字段
 	Date string `gorm:"size:50" json:"date"` // 日期
 	// 兼容性字段
-	Time string `gorm:"size:50" json:"time"` // 准确时间
-	Name string `gorm:"size:20" json:"name"` // 姓名
-	Sex  string `gorm:"size:10" json:"sex"`  // 性别
-	Age  string `gorm:"size:10" json:"age"`  // 年龄
+	Time   string `gorm:"size:50" json:"time"`    // 准确时间
+	Name   string `gorm:"size:20" json:"name"`    // 姓名
+	Sex    string `gorm:"size:10" json:"sex"`     // 性别
+	Age    string `gorm:"size:10" json:"age"`     // 年龄
+	IDCard string `gorm:"size:20" json:"id_card"` // 身份证号
+
 	// 兼容性字段
-	IllTime        string    `gorm:"size:100" json:"ill_time"`         // 患病时间
-	Phone          string    `gorm:"size:20" json:"phone"`             // 电话
-	Contact        string    `gorm:"type:text" json:"contact"`         // 联系方式
-	Parent         string    `gorm:"size:20" json:"parent"`            // 家长
-	Work           string    `gorm:"size:255" json:"work"`             // 工作
-	Address        string    `gorm:"size:255" json:"address"`          // 地址
-	AllergyHistory string    `gorm:"type:text" json:"allergy_history"` // 过敏史
-	Detail         string    `gorm:"type:text" json:"detail"`          // 详情
-	Solution       string    `gorm:"type:text" json:"solution"`        // 解决方案
-	MedicalAdvice  string    `gorm:"type:text" json:"medical_advice"`  // 医嘱
-	Addon          string    `gorm:"type:text" json:"addon"`           // 附加信息
-	Money          string    `gorm:"size:50" json:"money"`             // 费用
-	Doc            string    `gorm:"size:20" json:"doc"`               // 医生
-	CreatedAt      time.Time `json:"created_at"`                       // 创建时间
-	UpdatedAt      time.Time `json:"updated_at"`                       // 更新时间
+	IllTime        string `gorm:"size:100" json:"ill_time"`         // 患病时间
+	Phone          string `gorm:"size:20" json:"phone"`             // 电话
+	Contact        string `gorm:"type:text" json:"contact"`         // 联系方式
+	Parent         string `gorm:"size:255" json:"parent"`           // 家长
+	Work           string `gorm:"size:255" json:"work"`             // 工作
+	Address        string `gorm:"size:255" json:"address"`          // 地址
+	AllergyHistory string `gorm:"type:text" json:"allergy_history"` // 过敏史
+	Detail         string `gorm:"type:text" json:"detail"`          // 详情
+	Solution       string `gorm:"type:text" json:"solution"`        // 解决方案
+	MedicalAdvice  string `gorm:"type:text" json:"medical_advice"`  // 医嘱
+	Addon          string `gorm:"type:text" json:"addon"`           // 附加信息
+	// 兼容性字段
+	Money     string    `gorm:"size:50" json:"money"`  // 费用
+	Fee       float64   `gorm:"column:fee" json:"fee"` // 费用新
+	Doc       string    `gorm:"size:20" json:"doc"`    // 医生
+	CreatedAt time.Time `json:"created_at"`            // 创建时间
+	UpdatedAt time.Time `json:"updated_at"`            // 更新时间
 }
 
 // TableName 指定表名为小写下划线格式
@@ -90,16 +94,32 @@ func (Template) TableName() string {
 
 // Medicine 药品信息模型
 type Medicine struct {
-	ID           uint      `gorm:"primaryKey;autoIncrement" json:"id"` // 主键ID
-	Name         string    `gorm:"size:100" json:"name"`               // 药品名
-	Manufacturer string    `gorm:"size:200" json:"manufacturer"`       // 生产厂家
-	Price        string    `gorm:"size:50" json:"price"`               // 价格
-	Specification string   `gorm:"size:200" json:"specification"`      // 药品规格
-	CreatedAt    time.Time `json:"created_at"`                         // 创建时间
-	UpdatedAt    time.Time `json:"updated_at"`                         // 更新时间
+	ID            uint      `gorm:"primaryKey;autoIncrement" json:"id"` // 主键ID
+	Name          string    `gorm:"size:100" json:"name"`               // 药品名
+	Manufacturer  string    `gorm:"size:200" json:"manufacturer"`       // 生产厂家
+	Price         string    `gorm:"size:50" json:"price"`               // 价格
+	Specification string    `gorm:"size:200" json:"specification"`      // 药品规格
+	CreatedAt     time.Time `json:"created_at"`                         // 创建时间
+	UpdatedAt     time.Time `json:"updated_at"`                         // 更新时间
 }
 
 // TableName 指定表名为小写下划线格式
 func (Medicine) TableName() string {
 	return "medicine"
+}
+
+// ColumnConfig 表格列配置模型
+type ColumnConfig struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`  // 主键ID
+	Name      string    `gorm:"column:table_name" json:"table_name"` // 表名
+	ColumnKey string    `gorm:"size:50" json:"column_key"`           // 列标识
+	Visible   bool      `gorm:"default:true" json:"visible"`         // 是否显示
+	SortOrder int       `gorm:"default:0" json:"sort_order"`         // 排序顺序
+	CreatedAt time.Time `json:"created_at"`                          // 创建时间
+	UpdatedAt time.Time `json:"updated_at"`                          // 更新时间
+}
+
+// TableName 指定表名为小写下划线格式
+func (ColumnConfig) TableName() string {
+	return "column_config"
 }

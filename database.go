@@ -68,7 +68,7 @@ func (ds *DatabaseService) InitDB() error {
 
 // AutoMigrate 自动迁移所有表
 func (ds *DatabaseService) AutoMigrate() error {
-	return ds.db.AutoMigrate(&Patient{}, &Config{}, &Doctor{}, &Template{}, &Medicine{})
+	return ds.db.AutoMigrate(&Patient{}, &Config{}, &Doctor{}, &Template{}, &Medicine{}, &ColumnConfig{})
 }
 
 // GetDB 获取数据库实例

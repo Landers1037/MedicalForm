@@ -257,7 +257,7 @@ import {
   Delete,
   Upload
 } from '@element-plus/icons-vue'
-import { GetMetaInfo, GetDatabasePath, SelectDatabaseFile, MigrateOldDatabase } from '../../wailsjs/go/main/App'
+import { GetMetaInfo, GetDatabasePath, SelectDatabaseFile, MigrateOldDatabase, ExportPatientsToExcel } from '../../wailsjs/go/main/App'
 
 const themeStore = useThemeStore()
 const dataStore = useDataStore()
@@ -373,9 +373,28 @@ const handleClearDatabase = async () => {
   }
 }
 
-const handleExport = () => {
-  // 这里可以实现数据导出功能
-  ElMessage.info('导出功能开发中...')
+const handleExport = async () => {
+  let loadingInstance = null
+  try {
+    // 显示loading
+    loadingInstance = ElLoading.service({
+      lock: true,
+      text: '正在导出数据，请稍候...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    })
+    
+    // 调用后端导出方法
+    const filePath = await ExportPatientsToExcel()
+    
+    ElMessage.success(`数据导出成功！文件已保存到：${filePath}`)
+  } catch (error) {
+    ElMessage.error('数据导出失败：' + error)
+  } finally {
+    // 关闭loading
+    if (loadingInstance) {
+      loadingInstance.close()
+    }
+  }
 }
 
 const handleImport = (file) => {
@@ -479,7 +498,7 @@ onMounted(async () => {
 
 <style scoped>
 .setting-container {
-  padding: 20px;
+  padding: 16px;
   max-width: 800px;
   margin: 0 auto;
   height: calc(100vh - 60px);

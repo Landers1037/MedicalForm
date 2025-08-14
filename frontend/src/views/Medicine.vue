@@ -357,7 +357,7 @@ onMounted(() => {
 
 <style scoped>
 .medicine-container {
-  padding: 20px;
+  padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;

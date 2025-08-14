@@ -58,6 +58,10 @@ export function DropDatabase() {
   return window['go']['main']['App']['DropDatabase']();
 }
 
+export function ExportPatientsToExcel() {
+  return window['go']['main']['App']['ExportPatientsToExcel']();
+}
+
 export function GetAllConfigs() {
   return window['go']['main']['App']['GetAllConfigs']();
 }
@@ -80,6 +84,10 @@ export function GetAllTemplates() {
 
 export function GetAppInfo() {
   return window['go']['main']['App']['GetAppInfo']();
+}
+
+export function GetColumnConfigs() {
+  return window['go']['main']['App']['GetColumnConfigs']();
 }
 
 export function GetConfig(arg1) {
@@ -118,8 +126,16 @@ export function GetTemplatesByType(arg1) {
   return window['go']['main']['App']['GetTemplatesByType'](arg1);
 }
 
+export function InitDefaultColumnConfigs() {
+  return window['go']['main']['App']['InitDefaultColumnConfigs']();
+}
+
 export function MigrateOldDatabase(arg1) {
   return window['go']['main']['App']['MigrateOldDatabase'](arg1);
+}
+
+export function SaveColumnConfigs(arg1) {
+  return window['go']['main']['App']['SaveColumnConfigs'](arg1);
 }
 
 export function SearchDoctors(arg1, arg2) {

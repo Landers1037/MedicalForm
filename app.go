@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
 
@@ -179,6 +180,189 @@ func (a *App) BackupDatabase(clearAfterBackup bool) error {
 	// 如果需要清空当前数据库
 	if clearAfterBackup {
 		return a.DropDatabase()
+	}
+
+	return nil
+}
+
+// ExportPatientsToExcel 导出患者数据到Excel文件
+func (a *App) ExportPatientsToExcel() (string, error) {
+	// 获取所有患者数据
+	patients, err := a.GetAllPatients()
+	if err != nil {
+		return "", fmt.Errorf("获取患者数据失败: %v", err)
+	}
+
+	// 创建Excel文件
+	f := excelize.NewFile()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// 设置工作表名称
+	sheetName := "患者信息"
+	f.SetSheetName("Sheet1", sheetName)
+
+	// 设置表头
+	headers := []string{
+		"ID", "姓名", "性别", "年龄", "身份证号", "电话", "地址",
+		"诊断", "治疗方案", "医嘱", "费用", "费用备注", "创建时间", "更新时间",
+	}
+
+	// 写入表头
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// 写入数据
+	for i, patient := range patients {
+		row := i + 2 // 从第二行开始写入数据
+
+		// 格式化时间
+		createdAt := patient.CreatedAt.Format("2006-01-02 15:04:05")
+		updatedAt := patient.UpdatedAt.Format("2006-01-02 15:04:05")
+
+		data := []interface{}{
+			patient.ID,
+			patient.Name,
+			patient.Sex,
+			patient.Age,
+			patient.IDCard,
+			patient.Phone,
+			patient.Address,
+			patient.Detail,
+			patient.Solution,
+			patient.MedicalAdvice,
+			patient.Fee,
+			patient.Money,
+			createdAt,
+			updatedAt,
+		}
+
+		for j, value := range data {
+			cell, _ := excelize.CoordinatesToCellName(j+1, row)
+			f.SetCellValue(sheetName, cell, value)
+		}
+	}
+
+	// 设置列宽
+	f.SetColWidth(sheetName, "A", "A", 8)  // ID
+	f.SetColWidth(sheetName, "B", "B", 12) // 姓名
+	f.SetColWidth(sheetName, "C", "C", 8)  // 性别
+	f.SetColWidth(sheetName, "D", "D", 8)  // 年龄
+	f.SetColWidth(sheetName, "E", "E", 20) // 身份证号
+	f.SetColWidth(sheetName, "F", "F", 15) // 电话
+	f.SetColWidth(sheetName, "G", "G", 25) // 地址
+	f.SetColWidth(sheetName, "H", "H", 20) // 诊断
+	f.SetColWidth(sheetName, "I", "I", 20) // 治疗方案
+	f.SetColWidth(sheetName, "J", "J", 20) // 医嘱
+	f.SetColWidth(sheetName, "K", "K", 12) // 费用
+	f.SetColWidth(sheetName, "L", "L", 15) // 费用备注
+	f.SetColWidth(sheetName, "M", "M", 20) // 创建时间
+	f.SetColWidth(sheetName, "N", "N", 20) // 更新时间
+
+	// 获取桌面路径
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("获取用户目录失败: %v", err)
+	}
+	desktopPath := filepath.Join(homeDir, "Desktop")
+
+	// 生成文件名
+	now := time.Now()
+	filename := fmt.Sprintf("patients-%s.xlsx", now.Format("20060102-150405"))
+	filePath := filepath.Join(desktopPath, filename)
+
+	// 保存文件
+	if err := f.SaveAs(filePath); err != nil {
+		return "", fmt.Errorf("保存Excel文件失败: %v", err)
+	}
+
+	return filePath, nil
+}
+
+// GetColumnConfigs 获取患者表格列配置
+func (a *App) GetColumnConfigs() ([]ColumnConfig, error) {
+	var configs []ColumnConfig
+	result := a.db.GetDB().Where("table_name = ?", "patient").Order("sort_order asc").Find(&configs)
+	return configs, result.Error
+}
+
+// SaveColumnConfigs 保存患者表格列配置
+func (a *App) SaveColumnConfigs(configs []ColumnConfig) error {
+	// 开启事务
+	tx := a.db.GetDB().Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 遍历配置，根据columnKey更新或新增
+	for i, config := range configs {
+		config.Name = "patient"
+		config.SortOrder = i
+
+		// 查找是否存在该columnKey的配置
+		var existingConfig ColumnConfig
+		err := tx.Where("table_name = ? AND column_key = ?", "patient", config.ColumnKey).First(&existingConfig).Error
+
+		if err == nil {
+			// 存在则更新
+			if err := tx.Model(&existingConfig).Updates(map[string]interface{}{
+				"visible":    config.Visible,
+				"sort_order": config.SortOrder,
+			}).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else {
+			// 不存在则新增
+			if err := tx.Model(&ColumnConfig{}).Create(&config).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+
+	return tx.Commit().Error
+}
+
+// InitDefaultColumnConfigs 初始化患者表默认列配置
+func (a *App) InitDefaultColumnConfigs() error {
+	// 检查是否已有配置
+	var count int64
+	a.db.GetDB().Model(&ColumnConfig{}).Where("table_name = ?", "patient").Count(&count)
+	if count > 0 {
+		return nil // 已有配置，不需要初始化
+	}
+
+	// 患者表的默认列配置
+	defaultConfigs := []ColumnConfig{
+		{Name: "patient", ColumnKey: "id", Visible: true, SortOrder: 0},
+		{Name: "patient", ColumnKey: "name", Visible: true, SortOrder: 1},
+		{Name: "patient", ColumnKey: "sex", Visible: true, SortOrder: 2},
+		{Name: "patient", ColumnKey: "age", Visible: true, SortOrder: 3},
+		{Name: "patient", ColumnKey: "phone", Visible: true, SortOrder: 4},
+		{Name: "patient", ColumnKey: "address", Visible: true, SortOrder: 5},
+		{Name: "patient", ColumnKey: "parent", Visible: true, SortOrder: 6},
+		{Name: "patient", ColumnKey: "work", Visible: true, SortOrder: 7},
+		{Name: "patient", ColumnKey: "detail", Visible: true, SortOrder: 8},
+		{Name: "patient", ColumnKey: "contact", Visible: false, SortOrder: 9},
+		{Name: "patient", ColumnKey: "date", Visible: false, SortOrder: 10},
+		{Name: "patient", ColumnKey: "ill_time", Visible: false, SortOrder: 11},
+		{Name: "patient", ColumnKey: "doc", Visible: false, SortOrder: 12},
+		{Name: "patient", ColumnKey: "solution", Visible: false, SortOrder: 13},
+		{Name: "patient", ColumnKey: "medical_advice", Visible: false, SortOrder: 14},
+		{Name: "patient", ColumnKey: "fee", Visible: false, SortOrder: 15},
+		{Name: "patient", ColumnKey: "money", Visible: false, SortOrder: 16},
+	}
+
+	for _, config := range defaultConfigs {
+		if err := a.db.GetDB().Create(&config).Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -529,7 +713,7 @@ func (a *App) CreateMedicine(medicine Medicine) (*Medicine, error) {
 	// 设置创建时间
 	medicine.CreatedAt = time.Now()
 	medicine.UpdatedAt = time.Now()
-	
+
 	result := a.db.GetDB().Create(&medicine)
 	if result.Error != nil {
 		return nil, result.Error
@@ -541,7 +725,7 @@ func (a *App) CreateMedicine(medicine Medicine) (*Medicine, error) {
 func (a *App) UpdateMedicine(medicine Medicine) error {
 	// 设置更新时间
 	medicine.UpdatedAt = time.Now()
-	
+
 	result := a.db.GetDB().Save(&medicine)
 	return result.Error
 }
@@ -556,7 +740,7 @@ func (a *App) DeleteMedicine(id uint) error {
 func (a *App) SearchMedicines(searchType, keyword string) ([]Medicine, error) {
 	var medicines []Medicine
 	var result *gorm.DB
-	
+
 	switch searchType {
 	case "name":
 		result = a.db.GetDB().Where("name LIKE ?", "%"+keyword+"%").Find(&medicines)
@@ -566,7 +750,7 @@ func (a *App) SearchMedicines(searchType, keyword string) ([]Medicine, error) {
 		// 默认搜索药品名称和生产厂家
 		result = a.db.GetDB().Where("name LIKE ? OR manufacturer LIKE ?", "%"+keyword+"%", "%"+keyword+"%").Find(&medicines)
 	}
-	
+
 	return medicines, result.Error
 }
 
@@ -617,6 +801,9 @@ func (a *App) MigrateOldDatabase(oldDbPath string) error {
 			Age:            oldPatient.Age,
 			IllTime:        oldPatient.IllTime,
 			Phone:          oldPatient.Phone,
+			Address:        oldPatient.Address,
+			Parent:         oldPatient.Parent,
+			Work:           oldPatient.Work,
 			AllergyHistory: "", // 旧版本没有过敏史字段
 			Detail:         oldPatient.Detail,
 			Solution:       oldPatient.Solution,

@@ -9,7 +9,7 @@ type OldPigTable struct {
 	Name          string `gorm:"size:20" json:"name"`                // 姓名
 	Sex           string `gorm:"size:10" json:"sex"`                 // 性别
 	Age           string `gorm:"size:10" json:"age"`                 // 年龄
-	IllTime       string `gorm:"size:100" json:"ill_time"`           // 患病时间
+	IllTime       string `gorm:"size:100" json:"illtime"`            // 患病时间
 	Phone         string `gorm:"size:20" json:"phone"`               // 手机号
 	Work          string `gorm:"size:200" json:"work"`               // 工作
 	Parent        string `gorm:"size:200" json:"parent"`             // 家长
