@@ -27,7 +27,8 @@ export const useDataStore = defineStore('data', () => {
   const dbInfo = ref({
     size: 0,
     count: 0,
-    new_bk: ''
+    lastBackup: '',
+    backupList: []
   })
   
   // 获取所有患者数据
@@ -112,7 +113,7 @@ export const useDataStore = defineStore('data', () => {
   const fetchDatabaseInfo = async () => {
     try {
       const result = await GetDatabaseInfo()
-      dbInfo.value = result || { size: 0, count: 0, new_bk: '' }
+      dbInfo.value = result || { size: 0, count: 0, lastBackup: '', backupList: [] }
       return result
     } catch (error) {
       console.error('获取数据库信息失败:', error)

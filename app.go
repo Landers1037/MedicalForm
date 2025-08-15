@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -118,21 +120,98 @@ func (a *App) GetDatabaseInfo() (map[string]interface{}, error) {
 	a.db.GetDB().Model(&Patient{}).Count(&count)
 
 	// 获取备份信息
-	backupDir := "backup"
-	var latestBackup string
-	if _, err := os.Stat(filepath.Join(GetAppRuntimePath(), backupDir)); err == nil {
-		files, _ := os.ReadDir(filepath.Join(GetAppRuntimePath(), backupDir))
-		if len(files) > 0 {
-			latestBackup = strings.Replace(files[len(files)-1].Name(), "patient-", "", 1)
-			latestBackup = strings.Replace(latestBackup, ".db", "", 1)
+	backupInfo := a.getLatestBackupInfo()
+
+	return map[string]interface{}{
+		"size":       size,
+		"count":      count,
+		"lastBackup": backupInfo["lastBackup"],
+		"backupList": backupInfo["backupList"],
+	}, nil
+}
+
+// getLatestBackupInfo 获取最新备份信息
+func (a *App) getLatestBackupInfo() map[string]interface{} {
+	backupDir := filepath.Join(GetAppRuntimePath(), "backup")
+
+	// 检查备份目录是否存在
+	if _, err := os.Stat(backupDir); os.IsNotExist(err) {
+		return map[string]interface{}{
+			"lastBackup": "",
+			"backupList": []map[string]interface{}{},
 		}
 	}
 
+	// 读取备份目录中的文件
+	files, err := os.ReadDir(backupDir)
+	if err != nil {
+		return map[string]interface{}{
+			"lastBackup": "",
+			"backupList": []map[string]interface{}{},
+		}
+	}
+
+	// 过滤出数据库备份文件并获取文件信息
+	type BackupFile struct {
+		Name    string
+		Path    string
+		ModTime time.Time
+		Size    int64
+		TimeStr string
+	}
+
+	var backupFiles []BackupFile
+	for _, file := range files {
+		if !file.IsDir() && strings.HasPrefix(file.Name(), "patient-") && strings.HasSuffix(file.Name(), ".db") {
+			filePath := filepath.Join(backupDir, file.Name())
+			fileInfo, err := os.Stat(filePath)
+			if err != nil {
+				continue
+			}
+
+			// 从文件名中提取时间戳
+			timeStr := strings.TrimPrefix(file.Name(), "patient-")
+			timeStr = strings.TrimSuffix(timeStr, ".db")
+
+			backupFiles = append(backupFiles, BackupFile{
+				Name:    file.Name(),
+				Path:    filePath,
+				ModTime: fileInfo.ModTime(),
+				Size:    fileInfo.Size(),
+				TimeStr: timeStr,
+			})
+		}
+	}
+
+	// 按修改时间排序（最新的在前）
+	sort.Slice(backupFiles, func(i, j int) bool {
+		return backupFiles[i].ModTime.After(backupFiles[j].ModTime)
+	})
+
+	// 构建返回结果
+	var lastBackup string
+	var backupList []map[string]interface{}
+
+	for _, file := range backupFiles {
+		backupInfo := map[string]interface{}{
+			"name":    file.Name,
+			"path":    file.Path,
+			"size":    file.Size,
+			"modTime": file.ModTime.Format("2006-01-02 15:04:05"),
+			"timeStr": file.TimeStr,
+		}
+		backupList = append(backupList, backupInfo)
+	}
+
+	// 设置最新备份时间
+	if len(backupFiles) > 0 {
+		lastBackup = backupFiles[0].ModTime.Format("2006-01-02 15:04:05")
+	}
+
 	return map[string]interface{}{
-		"size":   size,
-		"count":  count,
-		"new_bk": latestBackup,
-	}, nil
+		"lastBackup": lastBackup,
+		"backupList": backupList,
+	}
 }
 
 // CreateDatabase 创建数据库表
@@ -207,7 +286,7 @@ func (a *App) ExportPatientsToExcel() (string, error) {
 
 	// 设置表头
 	headers := []string{
-		"ID", "姓名", "性别", "年龄", "身份证号", "电话", "联系方式", "监护人", "工作", "地址", "病史", "患病时间", "医师",
+		"ID", "姓名", "性别", "年龄", "身份证号", "电话", "联系方式", "监护人", "职业", "地址", "病史", "患病时间", "医师",
 		"诊断", "治疗方案", "医嘱", "费用", "费用备注", "创建时间", "更新时间",
 	}
 
@@ -263,7 +342,7 @@ func (a *App) ExportPatientsToExcel() (string, error) {
 	f.SetColWidth(sheetName, "F", "F", 15) // 电话
 	f.SetColWidth(sheetName, "G", "G", 20) // 联系方式
 	f.SetColWidth(sheetName, "H", "H", 12) // 监护人
-	f.SetColWidth(sheetName, "I", "I", 15) // 工作
+	f.SetColWidth(sheetName, "I", "I", 15) // 职业
 	f.SetColWidth(sheetName, "J", "J", 20) // 地址
 	f.SetColWidth(sheetName, "K", "K", 25) // 病史
 	f.SetColWidth(sheetName, "L", "L", 15) // 患病时间
@@ -357,18 +436,19 @@ func (a *App) InitDefaultColumnConfigs() error {
 		{Name: "patient", ColumnKey: "sex", Visible: true, SortOrder: 2},
 		{Name: "patient", ColumnKey: "age", Visible: true, SortOrder: 3},
 		{Name: "patient", ColumnKey: "phone", Visible: true, SortOrder: 4},
-		{Name: "patient", ColumnKey: "address", Visible: true, SortOrder: 5},
-		{Name: "patient", ColumnKey: "parent", Visible: true, SortOrder: 6},
-		{Name: "patient", ColumnKey: "work", Visible: true, SortOrder: 7},
-		{Name: "patient", ColumnKey: "detail", Visible: true, SortOrder: 8},
-		{Name: "patient", ColumnKey: "contact", Visible: false, SortOrder: 9},
-		{Name: "patient", ColumnKey: "date", Visible: false, SortOrder: 10},
-		{Name: "patient", ColumnKey: "ill_time", Visible: false, SortOrder: 11},
-		{Name: "patient", ColumnKey: "doc", Visible: false, SortOrder: 12},
-		{Name: "patient", ColumnKey: "solution", Visible: false, SortOrder: 13},
-		{Name: "patient", ColumnKey: "medical_advice", Visible: false, SortOrder: 14},
-		{Name: "patient", ColumnKey: "fee", Visible: false, SortOrder: 15},
-		{Name: "patient", ColumnKey: "money", Visible: false, SortOrder: 16},
+		{Name: "patient", ColumnKey: "id_card", Visible: true, SortOrder: 5},
+		{Name: "patient", ColumnKey: "address", Visible: true, SortOrder: 6},
+		{Name: "patient", ColumnKey: "parent", Visible: true, SortOrder: 7},
+		{Name: "patient", ColumnKey: "work", Visible: true, SortOrder: 8},
+		{Name: "patient", ColumnKey: "detail", Visible: true, SortOrder: 9},
+		{Name: "patient", ColumnKey: "contact", Visible: false, SortOrder: 10},
+		{Name: "patient", ColumnKey: "date", Visible: false, SortOrder: 11},
+		{Name: "patient", ColumnKey: "ill_time", Visible: false, SortOrder: 12},
+		{Name: "patient", ColumnKey: "doc", Visible: false, SortOrder: 13},
+		{Name: "patient", ColumnKey: "solution", Visible: false, SortOrder: 14},
+		{Name: "patient", ColumnKey: "medical_advice", Visible: false, SortOrder: 15},
+		{Name: "patient", ColumnKey: "fee", Visible: false, SortOrder: 16},
+		{Name: "patient", ColumnKey: "money", Visible: false, SortOrder: 17},
 	}
 
 	for _, config := range defaultConfigs {
@@ -523,6 +603,22 @@ func (a *App) GetDatabasePath() (string, error) {
 	}
 
 	return fmt.Sprintf("%s (%.2f KB)", dbPath, float64(fileInfo.Size())/1024), nil
+}
+
+// OpenDatabaseLocation 在文件浏览器中打开数据库文件所在位置
+func (a *App) OpenDatabaseLocation() error {
+	// 获取数据库文件路径
+	appDataDir := GetAppRuntimePath()
+	// 构建数据库文件路径
+	dbPath := filepath.Join(appDataDir, DBName)
+	// 检查文件是否存在
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+		return fmt.Errorf("数据库文件不存在: %s", dbPath)
+	}
+
+	// 在Windows资源管理器中打开并选中文件
+	cmd := exec.Command("explorer", "/select,", dbPath)
+	return cmd.Start()
 }
 
 // GetAllDoctors 获取所有医师数据

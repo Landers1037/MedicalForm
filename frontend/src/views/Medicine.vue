@@ -102,7 +102,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import {
   Plus,
   Refresh,
@@ -192,7 +192,7 @@ const loadMedicines = async () => {
     const result = await GetAllMedicines()
     medicines.value = result || []
   } catch (error) {
-    ElMessage.error('获取药品数据失败：' + error.message)
+    ElNotification.error({ message: '获取药品数据失败：' + error.message, duration: 1500, position: 'bottom-right' })
     medicines.value = []
   } finally {
     loading.value = false
@@ -201,7 +201,7 @@ const loadMedicines = async () => {
 
 const handleRefresh = async () => {
   await loadMedicines()
-  ElMessage.success('数据刷新成功')
+  ElNotification.success({ message: '数据刷新成功', duration: 1500, position: 'bottom-right' })
 }
 
 const handleSearch = async () => {
@@ -217,7 +217,7 @@ const handleSearch = async () => {
     medicines.value = result
   } catch (error) {
     console.error('搜索药品失败:', error)
-    ElMessage.error('搜索药品失败：' + error.message)
+    ElNotification.error({ message: '搜索药品失败：' + error.message, duration: 1500, position: 'bottom-right' })
   } finally {
     loading.value = false
   }
@@ -251,11 +251,11 @@ const handleDelete = async (row) => {
     )
 
     await DeleteMedicine(row.id)
-    ElMessage.success('删除成功')
+    ElNotification.success({ message: '删除成功', duration: 1500, position: 'bottom-right' })
     await loadMedicines()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败：' + error.message)
+      ElNotification.error({ message: '删除失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -292,17 +292,17 @@ const handleSubmit = async () => {
       // 编辑模式
       submitData.id = editingMedicine.value.id
       await UpdateMedicine(submitData)
-      ElMessage.success('药品信息更新成功')
+      ElNotification.success({ message: '药品信息更新成功', duration: 1500, position: 'bottom-right' })
     } else {
       // 添加模式
       await CreateMedicine(submitData)
-      ElMessage.success('药品添加成功')
+      ElNotification.success({ message: '药品添加成功', duration: 1500, position: 'bottom-right' })
     }
 
     showAddDialog.value = false
     await loadMedicines()
   } catch (error) {
-    ElMessage.error('操作失败：' + error.message)
+    ElNotification.error({ message: '操作失败：' + error.message, duration: 1500, position: 'bottom-right' })
   } finally {
     submitting.value = false
   }
@@ -325,7 +325,7 @@ const handleCrawlMedicine = async () => {
     
     // 获取爬取前的药品数量
     const beforeCount = await GetMedicineCount()
-    ElMessage.info(`开始爬取药品数据，当前数据库中有 ${beforeCount} 条药品记录`)
+    ElNotification.info({ message: `开始爬取药品数据，当前数据库中有 ${beforeCount} 条药品记录`, duration: 1500, position: 'bottom-right' })
     
     // 爬取药品数据（默认爬取5页）
     await CrawlMedicineDataWithPages(5)
@@ -334,7 +334,7 @@ const handleCrawlMedicine = async () => {
     const afterCount = await GetMedicineCount()
     const newCount = afterCount - beforeCount
     
-    ElMessage.success(`药品数据爬取完成！新增 ${newCount} 条药品记录`)
+    ElNotification.success({ message: `药品数据爬取完成！新增 ${newCount} 条药品记录`, duration: 1500, position: 'bottom-right' })
     
     // 刷新药品列表
     await loadMedicines()
@@ -342,7 +342,7 @@ const handleCrawlMedicine = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('爬取药品数据失败:', error)
-      ElMessage.error('爬取药品数据失败：' + error.message)
+      ElNotification.error({ message: '爬取药品数据失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     crawling.value = false

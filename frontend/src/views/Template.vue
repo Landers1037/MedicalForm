@@ -130,7 +130,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { GetAllTemplates, CreateTemplate, UpdateTemplate, DeleteTemplate } from '../../wailsjs/go/main/App'
 
@@ -178,7 +178,7 @@ const fetchTemplates = async () => {
     allTemplates.value = response || []
   } catch (error) {
     console.error('获取模板数据失败:', error)
-    ElMessage.error('获取模板数据失败')
+    ElNotification.error({ message: '获取模板数据失败', duration: 1500, position: 'bottom-right' })
   } finally {
     loading.value = false
   }
@@ -222,11 +222,11 @@ const handleDelete = async (row) => {
       allTemplates.value.splice(index, 1)
     }
     
-    ElMessage.success('删除成功')
+    ElNotification.success({ message: '删除成功', duration: 1500, position: 'bottom-right' })
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除模板失败:', error)
-      ElMessage.error('删除模板失败')
+      ElNotification.error({ message: '删除模板失败', duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -247,14 +247,14 @@ const handleSubmit = async () => {
         allTemplates.value[index] = response || { ...templateForm }
       }
       
-      ElMessage.success('更新成功')
+      ElNotification.success({ message: '更新成功', duration: 1500, position: 'bottom-right' })
     } else {
       // 检查名称是否重复
       const exists = allTemplates.value.some(template => 
         template.name === templateForm.name && template.type === templateForm.type
       )
       if (exists) {
-        ElMessage.error('模板名称已存在，请使用其他名称')
+        ElNotification.error({ message: '模板名称已存在，请使用其他名称', duration: 1500, position: 'bottom-right' })
         return
       }
       
@@ -266,17 +266,17 @@ const handleSubmit = async () => {
         allTemplates.value.push(response)
       }
       
-      ElMessage.success('创建成功')
+      ElNotification.success({ message: '创建成功', duration: 1500, position: 'bottom-right' })
     }
     
     showDialog.value = false
     resetForm()
   } catch (error) {
     if (error.message && error.message.includes('duplicate')) {
-      ElMessage.error('模板名称已存在，请使用其他名称')
+      ElNotification.error({ message: '模板名称已存在，请使用其他名称', duration: 1500, position: 'bottom-right' })
     } else {
       console.error('提交失败:', error)
-      ElMessage.error('操作失败')
+      ElNotification.error({ message: '操作失败', duration: 1500, position: 'bottom-right' })
     }
   } finally {
     submitting.value = false

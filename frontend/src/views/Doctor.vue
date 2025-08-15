@@ -211,7 +211,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import {
   User,
   Plus,
@@ -347,11 +347,11 @@ const handleDelete = async (doctor) => {
     
     await doctorStore.deleteDoctor(doctor.id)
     if (!isUnmounted.value) {
-      ElMessage.success('删除成功')
+      ElNotification.success({ message: '删除成功', duration: 1500, position: 'bottom-right' })
     }
   } catch (error) {
     if (error !== 'cancel' && !isUnmounted.value) {
-      ElMessage.error('删除失败：' + error.message)
+      ElNotification.error({ message: '删除失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -371,20 +371,20 @@ const handleSubmit = async () => {
       }
       await doctorStore.updateDoctor(updateData)
       if (!isUnmounted.value) {
-        ElMessage.success('更新成功')
+        ElNotification.success({ message: '更新成功', duration: 1500, position: 'bottom-right' })
       }
     } else {
       // 添加医师
       await doctorStore.addDoctor(doctorForm)
       if (!isUnmounted.value) {
-        ElMessage.success('添加成功')
+        ElNotification.success({ message: '添加成功', duration: 1500, position: 'bottom-right' })
       }
     }
     
     showAddDialog.value = false
   } catch (error) {
     if (!isUnmounted.value) {
-      ElMessage.error((editingDoctor.value ? '更新' : '添加') + '失败：' + error.message)
+      ElNotification.error({ message: (editingDoctor.value ? '更新' : '添加') + '失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     submitting.value = false
@@ -419,11 +419,11 @@ const handleRefresh = async () => {
   try {
     await doctorStore.fetchAllDoctors()
     if (!isUnmounted.value) {
-      ElMessage.success('数据刷新成功')
+      ElNotification.success({ message: '数据刷新成功', duration: 1500, position: 'bottom-right' })
     }
   } catch (error) {
     if (!isUnmounted.value) {
-      ElMessage.error('刷新失败：' + error.message)
+      ElNotification.error({ message: '刷新失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     loading.value = false
@@ -447,10 +447,10 @@ onMounted(async () => {
   } catch (error) {
     if (!isUnmounted.value) {
       console.error('加载数据失败：', error)
-      ElMessage({
+      ElNotification.error({
         message: '加载数据失败：' + error.message,
-        type: 'error',
         duration: 1500,
+        position: 'bottom-right'
       })
     }
   } finally {

@@ -110,6 +110,15 @@
                     >
                       浏览
                     </el-button>
+                    <el-button
+                      type="success"
+                      plain
+                      :icon="Location"
+                      @click="handleOpenDatabaseLocation"
+                      class="location-btn"
+                    >
+                      打开位置
+                    </el-button>
                   </div>
                 </div>
               </div>
@@ -243,7 +252,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { useDataStore } from '@/stores/data'
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
+import { ElNotification, ElMessageBox, ElLoading } from 'element-plus'
 import {
   Brush,
   Coin,
@@ -255,9 +264,10 @@ import {
   Download,
   RefreshLeft,
   Delete,
-  Upload
+  Upload,
+  Location
 } from '@element-plus/icons-vue'
-import { GetMetaInfo, GetDatabasePath, SelectDatabaseFile, MigrateOldDatabase, ExportPatientsToExcel } from '../../wailsjs/go/main/App'
+import { GetMetaInfo, GetDatabasePath, SelectDatabaseFile, MigrateOldDatabase, ExportPatientsToExcel, OpenDatabaseLocation } from '../../wailsjs/go/main/App'
 
 const themeStore = useThemeStore()
 const dataStore = useDataStore()
@@ -299,9 +309,9 @@ const formatFileSize = (bytes) => {
 const handleThemeChange = async () => {
   try {
     await themeStore.saveTheme()
-    ElMessage.success('主题设置已保存')
+    ElNotification.success({ message: '主题设置已保存', duration: 1500, position: 'bottom-right' })
   } catch (error) {
-    ElMessage.error('保存主题设置失败：' + error.message)
+    ElNotification.error({ message: '保存主题设置失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -309,9 +319,9 @@ const handleColorChange = async (color) => {
   try {
     themeStore.setPrimaryColor(color)
     await themeStore.saveTheme()
-    ElMessage.success('主题颜色已更新')
+    ElNotification.success({ message: '主题颜色已更新', duration: 1500, position: 'bottom-right' })
   } catch (error) {
-    ElMessage.error('保存主题颜色失败：' + error.message)
+    ElNotification.error({ message: '保存主题颜色失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -319,9 +329,9 @@ const handleBackup = async () => {
   try {
     await dataStore.backupDatabase(false)
     await dataStore.fetchDatabaseInfo()
-    ElMessage.success('数据库备份成功')
+    ElNotification.success({ message: '数据库备份成功', duration: 1500, position: 'bottom-right' })
   } catch (error) {
-    ElMessage.error('数据库备份失败：' + error.message)
+    ElNotification.error({ message: '数据库备份失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -340,10 +350,10 @@ const handleBackupAndClear = async () => {
     await dataStore.backupDatabase(true)
     await dataStore.fetchAllPatients()
     await dataStore.fetchDatabaseInfo()
-    ElMessage.success('数据库已备份并清空')
+    ElNotification.success({ message: '数据库已备份并清空', duration: 1500, position: 'bottom-right' })
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('操作失败：' + error.message)
+      ElNotification.error({ message: '操作失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -365,10 +375,10 @@ const handleClearDatabase = async () => {
     await dataStore.createDatabase()
     await dataStore.fetchAllPatients()
     await dataStore.fetchDatabaseInfo()
-    ElMessage.success('数据库已清空')
+    ElNotification.success({ message: '数据库已清空', duration: 1500, position: 'bottom-right' })
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('清空数据库失败：' + error.message)
+      ElNotification.error({ message: '清空数据库失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -386,9 +396,9 @@ const handleExport = async () => {
     // 调用后端导出方法
     const filePath = await ExportPatientsToExcel()
     
-    ElMessage.success(`数据导出成功！文件已保存到：${filePath}`)
+    ElNotification.success({ message: `数据导出成功！文件已保存到：${filePath}`, duration: 1500, position: 'bottom-right' })
   } catch (error) {
-    ElMessage.error('数据导出失败：' + error)
+    ElNotification.error({ message: '数据导出失败：' + error, duration: 1500, position: 'bottom-right' })
   } finally {
     // 关闭loading
     if (loadingInstance) {
@@ -399,7 +409,7 @@ const handleExport = async () => {
 
 const handleImport = (file) => {
   // 这里可以实现数据导入功能
-  ElMessage.info('导入功能开发中...')
+  ElNotification.info({ message: '导入功能开发中...', duration: 1500, position: 'bottom-right' })
 }
 
 // 浏览数据库文件
@@ -409,12 +419,22 @@ const handleBrowseDatabase = async () => {
     const result = await SelectDatabaseFile()
     if (result) {
       dbPath.value = result
-      ElMessage.success('数据库路径已更新')
+      ElNotification.success({ message: '数据库路径已更新', duration: 1500, position: 'bottom-right' })
       // 重新加载数据库信息
       await dataStore.fetchDatabaseInfo()
     }
   } catch (error) {
-    ElMessage.error('选择数据库文件失败：' + error.message)
+    ElNotification.error({ message: '选择数据库文件失败：' + error.message, duration: 1500, position: 'bottom-right' })
+  }
+}
+
+// 打开数据库文件所在位置
+const handleOpenDatabaseLocation = async () => {
+  try {
+    await OpenDatabaseLocation()
+    ElNotification.success({ message: '已在文件浏览器中打开数据库所在位置', duration: 1500, position: 'bottom-right' })
+  } catch (error) {
+    ElNotification.error({ message: '打开文件位置失败：' + error, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -449,11 +469,11 @@ const handleMigrateOldDatabase = async () => {
       await dataStore.fetchAllPatients()
       await dataStore.fetchDatabaseInfo()
       
-      ElMessage.success('数据库迁移成功')
+      ElNotification.success({ message: '数据库迁移成功', duration: 1500, position: 'bottom-right' })
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('数据库迁移失败：' + error)
+      ElNotification.error({ message: '数据库迁移失败：' + error, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     // 关闭loading
@@ -487,10 +507,10 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('加载数据失败：', error)
-    ElMessage({
+    ElNotification.error({
       message: '加载数据库信息失败：' + error.message,
-      type: 'error',
       duration: 1500,
+      position: 'bottom-right'
     })
   }
 })
@@ -673,7 +693,8 @@ onMounted(async () => {
   flex: 1;
 }
 
-.browse-btn {
+.browse-btn,
+.location-btn {
   flex-shrink: 0;
 }
 

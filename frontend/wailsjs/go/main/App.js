@@ -134,6 +134,10 @@ export function MigrateOldDatabase(arg1) {
   return window['go']['main']['App']['MigrateOldDatabase'](arg1);
 }
 
+export function OpenDatabaseLocation() {
+  return window['go']['main']['App']['OpenDatabaseLocation']();
+}
+
 export function SaveColumnConfigs(arg1) {
   return window['go']['main']['App']['SaveColumnConfigs'](arg1);
 }

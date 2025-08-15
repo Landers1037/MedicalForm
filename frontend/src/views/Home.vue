@@ -249,7 +249,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useDataStore } from '@/stores/data'
-import { ElMessage } from 'element-plus'
+import { ElNotification } from 'element-plus'
 import * as echarts from 'echarts'
 import {
   Document,
@@ -409,9 +409,9 @@ const formatFileSize = (bytes) => {
 const handleBackup = async () => {
   try {
     await dataStore.backupDatabase(false)
-    ElMessage.success('数据备份成功')
+    ElNotification.success({ message: '数据备份成功', duration: 1500, position: 'bottom-right' })
   } catch (error) {
-    ElMessage.error('数据备份失败：' + error.message)
+    ElNotification.error({ message: '数据备份失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -495,11 +495,7 @@ onMounted(async () => {
   } catch (error) {
     if (!isUnmounted.value) {
       console.error('加载数据失败：', error)
-      ElMessage({
-        message: '加载数据失败：' + error.message,
-        type: 'error',
-        duration: 1500,
-      })
+      ElNotification.error({ message: '加载数据失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 })

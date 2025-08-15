@@ -68,6 +68,8 @@ export function InitDefaultColumnConfigs():Promise<void>;
 
 export function MigrateOldDatabase(arg1:string):Promise<void>;
 
+export function OpenDatabaseLocation():Promise<void>;
+
 export function SaveColumnConfigs(arg1:Array<main.ColumnConfig>):Promise<void>;
 
 export function SearchDoctors(arg1:string,arg2:string):Promise<Array<main.Doctor>>;

@@ -21,12 +21,20 @@
                 </el-button>
               </div>
               <div class="search-input">
-                <el-input v-model="searchForm.keyword" placeholder="搜索姓名、电话或诊断" style="width: 300px" clearable
-                  @input="handleSearch">
+                <el-input v-model="searchForm.keyword" :placeholder="`搜索${searchTypeOptions.find(opt => opt.value === searchForm.searchType)?.label || '内容'}`" style="width: 350px" clearable
+                  @input="handleSearch" @keyup.enter="handleSearch">
                   <template #prefix>
-                    <el-icon>
-                      <Search />
-                    </el-icon>
+                    <el-select v-model="searchForm.searchType" style="width: 110px" @change="handleSearch">
+                      <el-option
+                        v-for="option in searchTypeOptions"
+                        :key="option.value"
+                        :label="option.label"
+                        :value="option.value"
+                      />
+                    </el-select>
+                  </template>
+                  <template #suffix>
+                    <el-button type="primary" :icon="Search" @click="handleSearch" text />
                   </template>
                 </el-input>
               </div>
@@ -91,13 +99,14 @@
           </el-table-column>
           <el-table-column v-if="visibleColumns.includes('age')" prop="age" label="年龄" width="80" sortable />
           <el-table-column v-if="visibleColumns.includes('phone')" prop="phone" label="电话" width="140" />
+          <el-table-column v-if="visibleColumns.includes('id_card')" prop="id_card" label="身份证号" width="165" />
           <el-table-column v-if="visibleColumns.includes('contact')" prop="contact" label="联系方式" width="150"
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('address')" prop="address" label="家庭住址" width="150"
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('parent')" prop="parent" label="监护人" width="100"
             show-overflow-tooltip />
-          <el-table-column v-if="visibleColumns.includes('work')" prop="work" label="工作" width="100"
+          <el-table-column v-if="visibleColumns.includes('work')" prop="work" label="职业" width="100"
             show-overflow-tooltip />
           <el-table-column v-if="visibleColumns.includes('date')" prop="date" label="登记日期" width="120" sortable />
           <el-table-column v-if="visibleColumns.includes('ill_time')" prop="ill_time" label="患病时间" width="120"
@@ -175,22 +184,25 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-form-item label="身份证号">
+          <el-input v-model="patientForm.id_card" placeholder="请输入身份证号" />
+        </el-form-item>
         <el-form-item label="联系方式">
           <el-input v-model="patientForm.contact" placeholder="其他联系方式，QQ, 微信等" />
         </el-form-item>
         <el-form-item label="家庭住址">
           <el-input v-model="patientForm.address" placeholder="请输入家庭住址" />
         </el-form-item>
-        <el-row :gutter="8">
+        <el-row :gutter="12">
           <el-col :span="12">
             <el-form-item label="监护人">
               <el-input v-model="patientForm.parent" placeholder="请输入监护人姓名" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="工作">
-              <div style="display: flex; gap: 8px;">
-                <el-input v-model="patientForm.work" placeholder="请输入工作" style="flex: 1;width: 200px;" />
+            <el-form-item label="职业" label-width="auto">
+              <div style="display: flex; gap: 8px;justify-content: flex-start;">
+                <el-input v-model="patientForm.work" placeholder="输入职业工作" style="flex: 1;width: 180px;" />
                 <el-select v-model="selectedWorkOption" placeholder="选快速择" style="width: 100px;" @change="fillWorkOption">
                   <el-option label="学生" value="学生" />
                   <el-option label="职工" value="职工" />
@@ -300,10 +312,11 @@
           </el-descriptions-item>
           <el-descriptions-item label="年龄">{{ viewingPatient.age }} 岁</el-descriptions-item>
           <el-descriptions-item label="电话">{{ viewingPatient.phone }}</el-descriptions-item>
+          <el-descriptions-item label="身份证号">{{ viewingPatient.id_card || '无' }}</el-descriptions-item>
           <el-descriptions-item label="联系方式">{{ viewingPatient.contact || '无' }}</el-descriptions-item>
           <el-descriptions-item label="家庭住址">{{ viewingPatient.address || '无' }}</el-descriptions-item>
           <el-descriptions-item label="监护人">{{ viewingPatient.parent || '无' }}</el-descriptions-item>
-          <el-descriptions-item label="工作">{{ viewingPatient.work || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="职业">{{ viewingPatient.work || '无' }}</el-descriptions-item>
           <el-descriptions-item label="登记日期">{{ viewingPatient.date }}</el-descriptions-item>
           <el-descriptions-item label="患病时间">{{ viewingPatient.ill_time || '无' }}</el-descriptions-item>
           <el-descriptions-item label="诊断医师">{{ viewingPatient.doc }}</el-descriptions-item>
@@ -402,7 +415,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useDataStore } from '@/stores/data'
 import { useDoctorStore } from '@/stores/doctor'
 import { useTemplateStore } from '@/stores/template'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import { GetAllMedicines } from '../../wailsjs/go/main/App'
 import {
   Plus,
@@ -449,7 +462,7 @@ const selectedMedicine = ref(null)
 const filteredMedicines = ref([])
 const medicineLoading = ref(false)
 
-// 工作选项相关
+// 职业选项相关
 const selectedWorkOption = ref(null)
 
 // 表单引用
@@ -458,9 +471,21 @@ const formRef = ref()
 // 搜索表单
 const searchForm = ref({
   keyword: '',
+  searchType: 'name', // 搜索类型：name, phone, parent, address, work, money
   sex: '',
   dateRange: []
 })
+
+// 搜索类型选项
+const searchTypeOptions = [
+  { label: '姓名', value: 'name' },
+  { label: '电话', value: 'phone' },
+  { label: '身份证号', value: 'id_card' },
+  { label: '监护人', value: 'parent' },
+  { label: '住址', value: 'address' },
+  { label: '职业', value: 'work' },
+  { label: '费用明细', value: 'money' }
+]
 
 // 患者表单
 const patientForm = ref({
@@ -468,6 +493,7 @@ const patientForm = ref({
   sex: '男',
   age: null,
   phone: '',
+  id_card: '',
   contact: '',
   address: '',
   parent: '',
@@ -511,14 +537,14 @@ const filteredData = computed(() => {
   }
   let data = [...dataStore.patientItems]
 
-  // 关键词搜索 - 根据名称进行精准匹配
+  // 关键词搜索 - 根据选择的搜索类型进行模糊匹配
   if (searchForm.value.keyword) {
-    const keyword = searchForm.value.keyword.trim()
-    data = data.filter(item =>
-      item.name === keyword ||
-      item.phone.includes(keyword) ||
-      item.detail.toLowerCase().includes(keyword.toLowerCase())
-    )
+    const keyword = searchForm.value.keyword.trim().toLowerCase()
+    const searchType = searchForm.value.searchType
+    data = data.filter(item => {
+      const fieldValue = item[searchType]
+      return fieldValue && fieldValue.toString().toLowerCase().includes(keyword)
+    })
   }
 
   // 性别筛选
@@ -565,11 +591,11 @@ const handleRefresh = async () => {
   try {
     await dataStore.fetchAllPatients()
     if (!isUnmounted.value) {
-      ElMessage.success('数据刷新成功')
+      ElNotification.success({ message: '数据刷新成功', duration: 1500, position: 'bottom-right' })
     }
   } catch (error) {
     if (!isUnmounted.value) {
-      ElMessage.error('数据刷新失败：' + error.message)
+      ElNotification.error({ message: '数据刷新失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     if (!isUnmounted.value) {
@@ -587,6 +613,7 @@ const handleSearch = () => {
 const handleResetSearch = () => {
   searchForm.value = {
     keyword: '',
+    searchType: 'name',
     sex: '',
     dateRange: []
   }
@@ -623,7 +650,7 @@ const handleCopy = (row) => {
     contact: row.contact,
     address: row.address,
     parent: row.parent || '', // 复制监护人信息
-    work: row.work || '', // 复制工作信息
+    work: row.work || '', // 复制职业信息
     date: new Date().toISOString().split('T')[0], // 设置为当前日期
     doc: row.doc,
     ill_time: row.ill_time || '', // 复制患病时间
@@ -635,7 +662,7 @@ const handleCopy = (row) => {
     money: '' // 清空费用备注
   }
   showAddDialog.value = true
-  ElMessage.success('已复制患者基本信息，请填写新的就诊记录')
+  ElNotification.success({ message: '已复制患者基本信息，请填写新的就诊记录', duration: 1500, position: 'bottom-right' })
 }
 
 const handleDelete = async (row) => {
@@ -651,10 +678,10 @@ const handleDelete = async (row) => {
     )
 
     await dataStore.deletePatient(row.id)
-    ElMessage.success('删除成功')
+    ElNotification.success({ message: '删除成功', duration: 1500, position: 'bottom-right' })
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败：' + error.message)
+      ElNotification.error({ message: '删除失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   }
 }
@@ -722,7 +749,7 @@ const fillTreatmentTemplate = (templateId) => {
 }
 
 /**
- * 填充工作选项
+ * 填充职业选项
  */
 const fillWorkOption = (workOption) => {
   if (workOption) {
@@ -751,7 +778,7 @@ const searchMedicines = async (query) => {
     )
   } catch (error) {
     console.error('搜索药品失败:', error)
-    ElMessage.error('搜索药品失败：' + error.message)
+    ElNotification.error({ message: '搜索药品失败：' + error.message, duration: 1500, position: 'bottom-right' })
     filteredMedicines.value = []
   } finally {
     medicineLoading.value = false
@@ -785,7 +812,7 @@ const addMedicineToSolution = async (medicineId) => {
     }
   } catch (error) {
     console.error('添加药品失败:', error)
-    ElMessage.error('添加药品失败：' + error.message)
+    ElNotification.error({ message: '添加药品失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -818,17 +845,17 @@ const handleSubmit = async () => {
       console.log(submitData);
 
       await dataStore.updatePatient(submitData)
-      ElMessage.success('更新成功')
+      ElNotification.success({ message: '更新成功', duration: 1500, position: 'bottom-right' })
     } else {
       await dataStore.addPatient(submitData)
-      ElMessage.success('添加成功')
+      ElNotification.success({ message: '添加成功', duration: 1500, position: 'bottom-right' })
     }
 
     showAddDialog.value = false
     handleDialogClose()
   } catch (error) {
     if (error.message) {
-      ElMessage.error('操作失败：' + error.message)
+      ElNotification.error({ message: '操作失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     submitting.value = false
@@ -857,11 +884,7 @@ onMounted(async () => {
   } catch (error) {
     if (!isUnmounted.value) {
       console.error('加载数据失败：', error)
-      ElMessage({
-        message: '加载数据失败：' + error.message,
-        type: 'error',
-        duration: 1500,
-      })
+      ElNotification.error({ message: '加载数据失败：' + error.message, duration: 1500, position: 'bottom-right' })
     }
   } finally {
     if (!isUnmounted.value) {
@@ -895,7 +918,7 @@ const handleShowTimeline = async () => {
     await loadPatientTimeline(viewingPatient.value.name)
     showTimeline.value = true
   } catch (error) {
-    ElMessage.error('获取时间线数据失败：' + error.message)
+    ElNotification.error({ message: '获取时间线数据失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -928,18 +951,19 @@ const initColumnConfigs = () => {
     { columnKey: 'sex', label: '性别', visible: true, sortOrder: 2 },
     { columnKey: 'age', label: '年龄', visible: true, sortOrder: 3 },
     { columnKey: 'phone', label: '电话', visible: true, sortOrder: 4 },
-    { columnKey: 'address', label: '家庭住址', visible: true, sortOrder: 5 },
-    { columnKey: 'parent', label: '监护人', visible: true, sortOrder: 6 },
-    { columnKey: 'work', label: '工作', visible: true, sortOrder: 7 },
-    { columnKey: 'detail', label: '诊断', visible: true, sortOrder: 8 },
-    { columnKey: 'contact', label: '联系方式', visible: false, sortOrder: 9 },
-    { columnKey: 'date', label: '登记日期', visible: false, sortOrder: 10 },
-    { columnKey: 'ill_time', label: '患病时间', visible: false, sortOrder: 11 },
-    { columnKey: 'doc', label: '诊断医师', visible: false, sortOrder: 12 },
-    { columnKey: 'solution', label: '治疗方案', visible: false, sortOrder: 13 },
-    { columnKey: 'medical_advice', label: '医嘱', visible: false, sortOrder: 14 },
-    { columnKey: 'fee', label: '费用', visible: false, sortOrder: 15 },
-    { columnKey: 'money', label: '费用备注', visible: false, sortOrder: 16 }
+    { columnKey: 'id_card', label: '身份证号', visible: true, sortOrder: 5 },
+    { columnKey: 'contact', label: '联系方式', visible: true, sortOrder: 6 },
+    { columnKey: 'address', label: '家庭住址', visible: true, sortOrder: 7 },
+    { columnKey: 'parent', label: '监护人', visible: true, sortOrder: 8 },
+    { columnKey: 'work', label: '职业', visible: true, sortOrder: 9 },
+    { columnKey: 'detail', label: '诊断', visible: true, sortOrder: 10 },
+    { columnKey: 'date', label: '登记日期', visible: false, sortOrder: 11 },
+    { columnKey: 'ill_time', label: '患病时间', visible: false, sortOrder: 12 },
+    { columnKey: 'doc', label: '诊断医师', visible: false, sortOrder: 13 },
+    { columnKey: 'solution', label: '治疗方案', visible: false, sortOrder: 14 },
+    { columnKey: 'medical_advice', label: '医嘱', visible: false, sortOrder: 15 },
+    { columnKey: 'fee', label: '费用', visible: false, sortOrder: 16 },
+    { columnKey: 'money', label: '费用备注', visible: false, sortOrder: 17 }
   ]
 
   columnConfigs.value = [...defaultColumns]
@@ -951,17 +975,73 @@ const loadColumnConfigs = async () => {
     const { GetColumnConfigs } = await import('../../wailsjs/go/main/App')
     const configs = await GetColumnConfigs()
 
+    // 获取前端默认列配置
+    const defaultColumns = [
+      { columnKey: 'id', label: 'ID', visible: true, sortOrder: 0 },
+      { columnKey: 'name', label: '姓名', visible: true, sortOrder: 1 },
+      { columnKey: 'sex', label: '性别', visible: true, sortOrder: 2 },
+      { columnKey: 'age', label: '年龄', visible: true, sortOrder: 3 },
+      { columnKey: 'phone', label: '电话', visible: true, sortOrder: 4 },
+      { columnKey: 'id_card', label: '身份证号', visible: true, sortOrder: 5 },
+      { columnKey: 'contact', label: '联系方式', visible: true, sortOrder: 6 },
+      { columnKey: 'address', label: '家庭住址', visible: true, sortOrder: 7 },
+      { columnKey: 'parent', label: '监护人', visible: true, sortOrder: 8 },
+      { columnKey: 'work', label: '职业', visible: true, sortOrder: 9 },
+      { columnKey: 'detail', label: '诊断', visible: true, sortOrder: 10 },
+      { columnKey: 'date', label: '登记日期', visible: false, sortOrder: 11 },
+      { columnKey: 'ill_time', label: '患病时间', visible: false, sortOrder: 12 },
+      { columnKey: 'doc', label: '诊断医师', visible: false, sortOrder: 13 },
+      { columnKey: 'solution', label: '治疗方案', visible: false, sortOrder: 14 },
+      { columnKey: 'medical_advice', label: '医嘱', visible: false, sortOrder: 15 },
+      { columnKey: 'fee', label: '费用', visible: false, sortOrder: 16 },
+      { columnKey: 'money', label: '费用备注', visible: false, sortOrder: 17 }
+    ]
+
     if (configs && configs.length > 0) {
-      // 从后端获取配置成功
-      columnConfigs.value = configs.map(config => ({
-        columnKey: config.column_key,
-        label: getColumnLabel(config.column_key),
-        visible: config.visible,
-        sortOrder: config.sort_order
-      })).sort((a, b) => a.sortOrder - b.sortOrder)
+      // 从后端获取配置成功，合并前端默认配置和后端配置
+      const backendConfigMap = new Map()
+      configs.forEach(config => {
+        backendConfigMap.set(config.column_key, {
+          columnKey: config.column_key,
+          label: getColumnLabel(config.column_key),
+          visible: config.visible,
+          sortOrder: config.sort_order
+        })
+      })
+
+      // 合并配置：优先使用后端配置，缺失的列使用前端默认配置
+      const mergedConfigs = []
+      defaultColumns.forEach(defaultCol => {
+        if (backendConfigMap.has(defaultCol.columnKey)) {
+          // 使用后端配置
+          mergedConfigs.push(backendConfigMap.get(defaultCol.columnKey))
+        } else {
+          // 使用前端默认配置
+          mergedConfigs.push({
+            columnKey: defaultCol.columnKey,
+            label: getColumnLabel(defaultCol.columnKey),
+            visible: defaultCol.visible,
+            sortOrder: defaultCol.sortOrder
+          })
+        }
+      })
+
+      // 添加后端存在但前端默认配置中不存在的列（设为不可见）
+      backendConfigMap.forEach((config, columnKey) => {
+        if (!defaultColumns.find(col => col.columnKey === columnKey)) {
+          mergedConfigs.push({
+            columnKey: config.columnKey,
+            label: getColumnLabel(config.columnKey),
+            visible: false, // 默认不可见
+            sortOrder: config.sortOrder
+          })
+        }
+      })
+
+      columnConfigs.value = mergedConfigs.sort((a, b) => a.sortOrder - b.sortOrder)
     } else {
       // 后端无配置，使用默认配置并初始化到后端
-      initColumnConfigs()
+      columnConfigs.value = [...defaultColumns]
       await initDefaultColumnConfigs()
     }
   } catch (error) {
@@ -988,11 +1068,12 @@ const getColumnLabel = (columnKey) => {
     sex: '性别',
     age: '年龄',
     phone: '电话',
+    id_card: '身份证号',
+    contact: '联系方式',
     address: '家庭住址',
     parent: '监护人',
-    work: '工作',
+    work: '职业',
     detail: '诊断',
-    contact: '联系方式',
     date: '登记日期',
     ill_time: '患病时间',
     doc: '诊断医师',
@@ -1023,10 +1104,10 @@ const handleSaveColumnConfig = async () => {
     await SaveColumnConfigs(configsToSave)
     updateVisibleColumns()
     showColumnConfig.value = false
-    ElMessage.success('列配置保存成功')
+    ElNotification.success({ message: '列配置保存成功', duration: 1500, position: 'bottom-right' })
   } catch (error) {
     console.error('保存列配置失败:', error)
-    ElMessage.error('保存列配置失败：' + error.message)
+    ElNotification.error({ message: '保存列配置失败：' + error.message, duration: 1500, position: 'bottom-right' })
   }
 }
 
@@ -1210,6 +1291,51 @@ onUnmounted(() => {
 .search-input {
   display: flex;
   align-items: center;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 6px;
+}
+
+.search-input :deep(.el-input__prefix) {
+  padding-right: 0;
+}
+
+.search-input :deep(.el-input__prefix .el-select) {
+  border: none;
+  box-shadow: none;
+}
+
+.search-input :deep(.el-input__prefix .el-select .el-input__wrapper) {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding-right: 8px;
+}
+
+.search-input :deep(.el-select .el-input__wrapper.is-focus) {
+  box-shadow: none;
+  border: none;
+}
+
+:deep(.search-input .el-select .el-input.is-focus .el-input__wrapper) {
+  box-shadow: none;
+  border: none;
+}
+
+.search-input :deep(.el-select .el-input__wrapper.is-focus) {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.search-input :deep(.el-input__suffix) {
+  padding-left: 8px;
+}
+
+.search-input :deep(.el-button--text) {
+  padding: 4px 8px;
+  margin: 0;
 }
 
 .search-section .search-card :deep(.el-card__body) {
