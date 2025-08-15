@@ -207,7 +207,7 @@ func (a *App) ExportPatientsToExcel() (string, error) {
 
 	// 设置表头
 	headers := []string{
-		"ID", "姓名", "性别", "年龄", "身份证号", "电话", "地址",
+		"ID", "姓名", "性别", "年龄", "身份证号", "电话", "联系方式", "监护人", "工作", "地址", "病史", "患病时间", "医师",
 		"诊断", "治疗方案", "医嘱", "费用", "费用备注", "创建时间", "更新时间",
 	}
 
@@ -232,7 +232,13 @@ func (a *App) ExportPatientsToExcel() (string, error) {
 			patient.Age,
 			patient.IDCard,
 			patient.Phone,
+			patient.Contact,
+			patient.Parent,
+			patient.Work,
 			patient.Address,
+			patient.AllergyHistory,
+			patient.IllTime,
+			patient.Doc,
 			patient.Detail,
 			patient.Solution,
 			patient.MedicalAdvice,
@@ -255,14 +261,20 @@ func (a *App) ExportPatientsToExcel() (string, error) {
 	f.SetColWidth(sheetName, "D", "D", 8)  // 年龄
 	f.SetColWidth(sheetName, "E", "E", 20) // 身份证号
 	f.SetColWidth(sheetName, "F", "F", 15) // 电话
-	f.SetColWidth(sheetName, "G", "G", 25) // 地址
-	f.SetColWidth(sheetName, "H", "H", 20) // 诊断
-	f.SetColWidth(sheetName, "I", "I", 20) // 治疗方案
-	f.SetColWidth(sheetName, "J", "J", 20) // 医嘱
-	f.SetColWidth(sheetName, "K", "K", 12) // 费用
-	f.SetColWidth(sheetName, "L", "L", 15) // 费用备注
-	f.SetColWidth(sheetName, "M", "M", 20) // 创建时间
-	f.SetColWidth(sheetName, "N", "N", 20) // 更新时间
+	f.SetColWidth(sheetName, "G", "G", 20) // 联系方式
+	f.SetColWidth(sheetName, "H", "H", 12) // 监护人
+	f.SetColWidth(sheetName, "I", "I", 15) // 工作
+	f.SetColWidth(sheetName, "J", "J", 20) // 地址
+	f.SetColWidth(sheetName, "K", "K", 25) // 病史
+	f.SetColWidth(sheetName, "L", "L", 15) // 患病时间
+	f.SetColWidth(sheetName, "M", "M", 12) // 医师
+	f.SetColWidth(sheetName, "N", "N", 25) // 诊断
+	f.SetColWidth(sheetName, "O", "O", 25) // 治疗方案
+	f.SetColWidth(sheetName, "P", "P", 25) // 医嘱
+	f.SetColWidth(sheetName, "Q", "Q", 12) // 费用
+	f.SetColWidth(sheetName, "R", "R", 15) // 费用备注
+	f.SetColWidth(sheetName, "S", "S", 20) // 创建时间
+	f.SetColWidth(sheetName, "T", "T", 20) // 更新时间
 
 	// 获取桌面路径
 	homeDir, err := os.UserHomeDir()

@@ -221,7 +221,7 @@
           <el-input v-model="patientForm.ill_time" placeholder="请输入患病时间，如：3天、1周、2个月等" />
         </el-form-item>
         <el-form-item label="主诉及病史">
-          <el-input v-model="patientForm.AllergyHistory" type="textarea" :rows="3" placeholder="请输入病史信息" />
+          <el-input v-model="patientForm.allergy_history" type="textarea" :rows="3" placeholder="请输入病史信息" />
         </el-form-item>
         <el-form-item label="诊断" prop="detail">
           <div class="template-input-group">
@@ -308,7 +308,7 @@
           <el-descriptions-item label="患病时间">{{ viewingPatient.ill_time || '无' }}</el-descriptions-item>
           <el-descriptions-item label="诊断医师">{{ viewingPatient.doc }}</el-descriptions-item>
           <el-descriptions-item label="主诉及病史" :span="2">
-            <div class="detail-text">{{ viewingPatient.AllergyHistory || '无' }}</div>
+            <div class="detail-text">{{ viewingPatient.allergy_history || '无' }}</div>
           </el-descriptions-item>
           <el-descriptions-item label="诊断" :span="2">
             <div class="detail-text">{{ viewingPatient.detail }}</div>
@@ -350,7 +350,7 @@
                 </div>
                 <div class="timeline-item-content">
                   <p><strong>患病时间：</strong>{{ record.ill_time || '无' }}</p>
-                  <p><strong>主诉及病史：</strong>{{ record.AllergyHistory || '无' }}</p>
+                  <p><strong>主诉及病史：</strong>{{ record.allergy_history || '无' }}</p>
                   <p><strong>诊断：</strong>{{ record.detail }}</p>
                   <p><strong>检查及医嘱：</strong>{{ record.medical_advice || '无' }}</p>
                   <p><strong>治疗方案：</strong>{{ record.solution || '无' }}</p>
@@ -475,7 +475,7 @@ const patientForm = ref({
   date: new Date().toISOString().split('T')[0],
   doc: '',
   ill_time: '',
-  AllergyHistory: '',
+  allergy_history: '',
   detail: '',
   medical_advice: '',
   solution: '',
@@ -627,7 +627,7 @@ const handleCopy = (row) => {
     date: new Date().toISOString().split('T')[0], // 设置为当前日期
     doc: row.doc,
     ill_time: row.ill_time || '', // 复制患病时间
-    AllergyHistory: row.AllergyHistory,
+    allergy_history: row.allergy_history,
     detail: '', // 清空诊断
     medical_advice: '', // 清空医嘱
     solution: '', // 清空治疗方案
@@ -673,7 +673,7 @@ const handleDialogClose = () => {
     date: new Date().toISOString().split('T')[0],
     doc: '',
     ill_time: '',
-    AllergyHistory: '',
+    allergy_history: '',
     detail: '',
     medical_advice: '',
     solution: '',
@@ -811,7 +811,7 @@ const handleSubmit = async () => {
       detail: String(patientForm.value.detail || ''),
       solution: String(patientForm.value.solution || ''),
       medical_advice: String(patientForm.value.medical_advice || ''),
-      AllergyHistory: String(patientForm.value.AllergyHistory || '')
+      allergy_history: String(patientForm.value.allergy_history || '')
     }
 
     if (editingPatient.value) {
